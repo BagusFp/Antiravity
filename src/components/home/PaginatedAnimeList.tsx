@@ -147,7 +147,7 @@ export default function PaginatedAnimeList({
         {items.length === 0 && isLoading ? (
           <GridSkeleton count={12} />
         ) : items.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 animate-fade-in">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 animate-fade-in">
             {items.map((anime) => (
               <AnimeCard key={anime.id} anime={anime} />
             ))}

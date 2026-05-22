@@ -19,13 +19,12 @@ export default function ScheduleTabs({ scheduleItems }: ScheduleTabsProps) {
   const [viewMode, setViewMode] = useState<"weekly" | "latest">("weekly");
   const [activeTab, setActiveTab] = useState<string>(todayName);
 
-  // Filter items matching active day for Weekly Schedule
+  // Filter items matching active day for Weekly Schedule (Desktop)
   const activeItems = scheduleItems.filter(
     (item) => item.day.toLowerCase() === activeTab.toLowerCase()
   );
 
   // Groupings for Latest Releases View
-  // Sorting ongoing anime: Sanka API ongoing list comes newest-first.
   const newlyReleased = scheduleItems.slice(0, 12);
   const latestUpdates = scheduleItems.slice(12, 24);
   const ongoingReleases = scheduleItems.slice(24);
@@ -57,34 +56,34 @@ export default function ScheduleTabs({ scheduleItems }: ScheduleTabsProps) {
 
           {/* Airing Time Badge overlay (bottom left) */}
           {item.airingTime && (
-            <div className="absolute bottom-2.5 left-2.5 z-10 flex items-center space-x-1 px-2 py-0.5 rounded bg-[#0B0B0F]/90 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-white/10 shadow-lg">
-              <Clock className="w-3 h-3 text-accent" />
+            <div className="absolute bottom-2 left-2 z-10 flex items-center space-x-1 px-1.5 py-0.5 rounded bg-[#0B0B0F]/90 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-white/10 shadow-lg">
+              <Clock className="w-2.5 h-2.5 text-accent" />
               <span>{item.airingTime}</span>
             </div>
           )}
 
           {/* Episode Number Badge (top left) */}
           {item.episode && (
-            <div className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded bg-accent text-white text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-sm shadow-md">
+            <div className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded bg-accent text-white text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-sm shadow-md">
               EP {item.episode}
             </div>
           )}
 
           {/* Latest/New Episode Badge overlay (top right) */}
-          <div className="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded bg-green-500/90 text-white text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-sm shadow-md animate-pulse">
+          <div className="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded bg-green-500/90 text-white text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-sm shadow-md animate-pulse">
             NEW
           </div>
         </div>
 
         {/* Title and metadata text info */}
         <div className="space-y-0.5 px-0.5">
-          <h3 className="text-sm font-semibold text-white tracking-wide truncate group-hover:text-accent transition-colors duration-200">
+          <h3 className="text-xs sm:text-sm font-semibold text-white tracking-wide truncate group-hover:text-accent transition-colors duration-200">
             {item.title}
           </h3>
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-            <span className="capitalize">{item.day}</span>
+          <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-muted-foreground">
+            <span className="capitalize truncate mr-2">{item.day}</span>
             {item.latestReleaseDate && (
-              <span className="bg-white/5 px-1.5 py-0.5 rounded text-[10px] text-accent/80 font-bold border border-white/5">
+              <span className="bg-white/5 px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] text-accent/80 font-bold border border-white/5 shrink-0">
                 {item.latestReleaseDate}
               </span>
             )}
@@ -95,12 +94,12 @@ export default function ScheduleTabs({ scheduleItems }: ScheduleTabsProps) {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Selector tab view switch */}
-      <div className="flex items-center space-x-4 border-b border-white/5 pb-4">
+      <div className="flex items-center space-x-3 sm:space-x-4 border-b border-white/5 pb-4 overflow-x-auto no-scrollbar shrink-0">
         <button
           onClick={() => setViewMode("weekly")}
-          className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+          className={`flex items-center space-x-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 ${
             viewMode === "weekly"
               ? "bg-accent text-white shadow-lg shadow-accent/25"
               : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white"
@@ -111,7 +110,7 @@ export default function ScheduleTabs({ scheduleItems }: ScheduleTabsProps) {
         </button>
         <button
           onClick={() => setViewMode("latest")}
-          className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+          className={`flex items-center space-x-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 ${
             viewMode === "latest"
               ? "bg-accent text-white shadow-lg shadow-accent/25"
               : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white"
@@ -123,9 +122,9 @@ export default function ScheduleTabs({ scheduleItems }: ScheduleTabsProps) {
       </div>
 
       {viewMode === "weekly" ? (
-        <div className="space-y-8 animate-fade-in">
-          {/* 7 Day tab buttons */}
-          <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar border-b border-white/5">
+        <div className="space-y-6 sm:space-y-8 animate-fade-in">
+          {/* 7 Day tab buttons - Hidden on mobile, shown on desktop */}
+          <div className="hidden md:flex overflow-x-auto gap-2 pb-2 no-scrollbar border-b border-white/5">
             {daysOfWeek.map((day) => {
               const isActive = activeTab === day;
               return (
@@ -144,27 +143,49 @@ export default function ScheduleTabs({ scheduleItems }: ScheduleTabsProps) {
             })}
           </div>
 
-          {/* Airing Shows Grid */}
-          {activeItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 glass rounded-3xl border border-white/5 max-w-md mx-auto">
-              <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
-                <Inbox className="w-6 h-6 text-muted-foreground" />
+          {/* Desktop single day grid - Hidden on mobile */}
+          <div className="hidden md:block">
+            {activeItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 glass rounded-3xl border border-white/5 max-w-md mx-auto">
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                  <Inbox className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold text-white">No Scheduled Airings</h3>
+                  <p className="text-sm text-muted-foreground">
+                    There are no scheduled releases for <span className="capitalize text-accent font-semibold">{activeTab}</span>.
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold text-white">No Scheduled Airings</h3>
-                <p className="text-sm text-muted-foreground">
-                  There are no scheduled releases for <span className="capitalize text-accent font-semibold">{activeTab}</span>.
-                </p>
+            ) : (
+              <div className="grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                {activeItems.map(renderScheduleCard)}
               </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-              {activeItems.map(renderScheduleCard)}
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Mobile stacked grouped schedule sections - Hidden on desktop */}
+          <div className="md:hidden space-y-8">
+            {daysOfWeek.map((day) => {
+              const dayItems = scheduleItems.filter(
+                (item) => item.day.toLowerCase() === day.toLowerCase()
+              );
+              if (dayItems.length === 0) return null;
+              return (
+                <section key={day} className="space-y-4 animate-fade-in">
+                  <h3 className="text-base font-bold text-white capitalize border-l-4 border-accent pl-3 tracking-wide">
+                    {day}
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {dayItems.map(renderScheduleCard)}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
         </div>
       ) : (
-        <div className="space-y-16 animate-fade-in">
+        <div className="space-y-10 sm:space-y-16 animate-fade-in">
           {/* Newly Released Episodes Group */}
           {newlyReleased.length > 0 && (
             <section className="space-y-6">
@@ -175,11 +196,11 @@ export default function ScheduleTabs({ scheduleItems }: ScheduleTabsProps) {
                     Just Dropped
                   </span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white border-l-4 border-accent pl-3">
+                <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-white border-l-4 border-accent pl-3">
                   Newly Released Episodes
                 </h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
                 {newlyReleased.map(renderScheduleCard)}
               </div>
             </section>
@@ -195,11 +216,11 @@ export default function ScheduleTabs({ scheduleItems }: ScheduleTabsProps) {
                     Fresh Uploads
                   </span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white border-l-4 border-accent pl-3">
+                <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-white border-l-4 border-accent pl-3">
                   Latest Updates
                 </h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
                 {latestUpdates.map(renderScheduleCard)}
               </div>
             </section>
@@ -215,11 +236,11 @@ export default function ScheduleTabs({ scheduleItems }: ScheduleTabsProps) {
                     Airing Seasonal Shows
                   </span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white border-l-4 border-accent pl-3">
+                <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-white border-l-4 border-accent pl-3">
                   Ongoing Releases
                 </h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
                 {ongoingReleases.map(renderScheduleCard)}
               </div>
             </section>

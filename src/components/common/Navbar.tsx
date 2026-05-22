@@ -13,6 +13,17 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 20) {
         setIsScrolled(true);
@@ -116,7 +127,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden glass border-b border-white/5 absolute top-full left-0 w-full animate-fade-in">
+        <div className="md:hidden bg-[#0B0B0F]/98 backdrop-blur-md border-b border-white/5 absolute top-full left-0 w-full animate-fade-in">
           <div className="px-4 pt-4 pb-6 space-y-4">
             <form onSubmit={handleSearchSubmit} className="relative w-full">
               <input

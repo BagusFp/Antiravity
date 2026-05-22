@@ -40,12 +40,12 @@ export default function HeroBanner({ featured }: HeroBannerProps) {
 
         {/* Cinematic Title */}
         <div className="max-w-2xl space-y-4">
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight drop-shadow-lg drop-shadow-black">
+          <h1 className="text-2xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight drop-shadow-lg drop-shadow-black">
             {title}
           </h1>
 
           {/* Genres */}
-          <div className="flex flex-wrap gap-2 pt-1 text-sm text-muted-foreground">
+          <div className="flex flex-wrap gap-2 pt-1 text-xs sm:text-sm text-muted-foreground">
             {genres.map((genre, idx) => (
               <span key={genre} className="flex items-center">
                 {idx > 0 && <span className="mx-2 text-white/20">&bull;</span>}
@@ -61,11 +61,11 @@ export default function HeroBanner({ featured }: HeroBannerProps) {
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-4 pt-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
           {/* Watch Direct Button */}
           <Link
             href={`/watch/${encodeURIComponent(`${id}-episode-1`)}`}
-            className="flex items-center space-x-2 px-6 py-3 rounded-full bg-accent text-white font-semibold shadow-lg shadow-accent/20 hover:bg-accent-hover hover:scale-105 active:scale-95 transition-all duration-200"
+            className="flex items-center justify-center space-x-2 px-6 py-3 rounded-full bg-accent text-white font-semibold shadow-lg shadow-accent/20 hover:bg-accent-hover hover:scale-[1.02] sm:hover:scale-105 active:scale-95 transition-all duration-200 text-center"
           >
             <Play className="w-5 h-5 fill-current" />
             <span>Watch Episode 1</span>
@@ -74,7 +74,7 @@ export default function HeroBanner({ featured }: HeroBannerProps) {
           {/* Info Details Button */}
           <Link
             href={`/anime/${encodeURIComponent(id)}`}
-            className="flex items-center space-x-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/10 hover:scale-105 active:scale-95 transition-all duration-200 backdrop-blur-md"
+            className="flex items-center justify-center space-x-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/10 hover:scale-[1.02] sm:hover:scale-105 active:scale-95 transition-all duration-200 backdrop-blur-md text-center"
           >
             <Info className="w-5 h-5" />
             <span>View Details</span>

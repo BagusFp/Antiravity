@@ -56,7 +56,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
         <div className="flex flex-col md:flex-row gap-8 sm:gap-12 items-start">
           
           {/* Left Poster cover */}
-          <div className="w-full sm:w-64 aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 shadow-2xl shrink-0 bg-muted/20 relative group">
+          <div className="w-48 sm:w-64 mx-auto sm:mx-0 aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 shadow-2xl shrink-0 bg-muted/20 relative group">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={detail.image}
@@ -123,17 +123,17 @@ export default async function AnimeDetailPage({ params }: PageProps) {
             </div>
 
             {/* Actions panel */}
-            <div className="flex flex-wrap gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
               {detail.episodes.length > 0 && (
                 <Link
                   href={`/watch/${encodeURIComponent(detail.episodes[0].id)}`}
-                  className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white font-semibold shadow-lg shadow-accent/20 transition-all"
+                  className="flex items-center justify-center space-x-2 px-6 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white font-semibold shadow-lg shadow-accent/20 transition-all text-center"
                 >
                   <Play className="w-4 h-4 fill-current" />
                   <span>Start Watching</span>
                 </Link>
               )}
-              <button className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium border border-white/5 transition-all">
+              <button className="flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium border border-white/5 transition-all text-center">
                 <Bookmark className="w-4 h-4" />
                 <span>Bookmark</span>
               </button>
@@ -179,7 +179,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
               Related Recommendations
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
               {recommendations.slice(0, 6).map((rec: any) => (
                 <AnimeCard key={rec.id} anime={rec} />
               ))}

@@ -90,7 +90,7 @@ export default function AnimeCarousel({ title, items, viewMoreHref }: AnimeCarou
         {/* Scrollable grid container */}
         <div
           ref={scrollRef}
-          className="flex overflow-x-auto space-x-6 py-4 px-4 sm:px-0 no-scrollbar select-none"
+          className="flex overflow-x-auto space-x-4 sm:space-x-6 py-4 px-4 sm:px-0 no-scrollbar select-none"
         >
           {items.map((anime) => (
             <div

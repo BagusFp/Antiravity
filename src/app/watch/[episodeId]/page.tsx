@@ -6,6 +6,28 @@ import VideoPlayerWrapper from "@/app/watch/[episodeId]/VideoPlayerWrapper";
 
 export const revalidate = 600; // Cache stream lists for 10 minutes
 
+// Utility to clean up episode titles by removing redundant parent anime title prefixes
+const cleanEpisodeTitle = (epTitle: string, animeTitle: string, epNum: number) => {
+  if (!epTitle) return `Episode ${epNum}`;
+  
+  let cleaned = epTitle;
+  
+  // Escape regex special chars and remove anime title from prefix
+  const escapedAnimeTitle = animeTitle.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const regex = new RegExp(`^${escapedAnimeTitle}\\s*(-\\s*)?`, 'i');
+  cleaned = cleaned.replace(regex, '');
+  
+  // Clean up common prefixes
+  cleaned = cleaned.replace(/^\s*(episode|ep|eps)\s*/i, 'Episode ');
+  
+  // Fallback if empty
+  if (!cleaned.trim()) {
+    return `Episode ${epNum}`;
+  }
+  
+  return cleaned.trim();
+};
+
 interface PageProps {
   params: Promise<{ episodeId: string }>;
 }
@@ -167,7 +189,7 @@ export default async function WatchPage({ params }: PageProps) {
                     }`}
                   >
                     <span className="truncate pr-4">
-                      {ep.title || `Episode ${ep.number}`}
+                      {cleanEpisodeTitle(ep.title, parentDetails.title, ep.number)}
                     </span>
                     <div className="flex items-center shrink-0">
                       {isActive ? (

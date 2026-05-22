@@ -402,7 +402,7 @@ export default function VideoPlayer({
             <p className="text-sm text-muted-foreground leading-relaxed">
               We encountered a temporary problem extracting stream links from our providers. Select another episode or mirror:
             </p>
-            <div className="p-3 bg-white/5 border border-white/5 rounded-xl text-xs font-mono text-purple-300 break-all select-all">
+            <div className="p-3 bg-white/5 border border-white/5 rounded-xl text-xs font-mono text-purple-300 break-words whitespace-pre-wrap overflow-x-auto max-h-32 text-left select-all">
               {errorMsg}
             </div>
           </div>
@@ -606,7 +606,7 @@ export default function VideoPlayer({
 
                 {/* Subtitles Dropdown */}
                 {showSubtitleMenu && (
-                  <div className="absolute bottom-10 right-16 glass border border-white/5 rounded-xl py-2 px-1 w-44 z-30 animate-fade-in text-sm shadow-2xl">
+                  <div className="absolute bottom-12 right-0 sm:right-16 glass border border-white/5 rounded-xl py-2 px-1 w-44 max-h-48 overflow-y-auto z-30 animate-fade-in text-xs sm:text-sm shadow-2xl scrollbar-thin">
                     <div className="px-3 py-1 text-xs text-muted-foreground font-semibold border-b border-white/5 pb-1 mb-1">
                       Subtitles
                     </div>
@@ -658,7 +658,7 @@ export default function VideoPlayer({
 
               {/* Settings Dropdown */}
               {showSettingsMenu && (
-                <div className="absolute bottom-10 right-8 glass border border-white/5 rounded-xl py-2 px-1 w-52 z-30 animate-fade-in text-sm shadow-2xl space-y-1">
+                <div className="absolute bottom-12 right-0 sm:right-8 glass border border-white/5 rounded-xl py-2 px-1 w-52 max-h-60 overflow-y-auto z-30 animate-fade-in text-xs sm:text-sm shadow-2xl space-y-1 scrollbar-thin">
                   <div className="px-3 py-1 text-xs text-muted-foreground font-semibold border-b border-white/5 pb-1">
                     Quality Selector
                   </div>
