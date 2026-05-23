@@ -4,6 +4,42 @@ import { AnimeSearchResult, AnimeDetail, StreamSource, VideoSource, HomeData, Pa
 // We retrieve NEXT_PUBLIC_ANIME_API from process.env, defaulting to https://www.sankavollerei.com/anime
 const API_BASE = process.env.NEXT_PUBLIC_ANIME_API || "https://www.sankavollerei.com/anime";
 
+function convertToStreamUrl(redirectUrl: string): { url: string; isEmbed: boolean } | null {
+  if (redirectUrl.includes("pixeldrain.com")) {
+    const match = redirectUrl.match(/pixeldrain\.com\/u\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      return {
+        url: `https://pixeldrain.com/api/file/${match[1]}`,
+        isEmbed: false,
+      };
+    }
+  } else if (redirectUrl.includes("mega.nz")) {
+    const converted = redirectUrl.replace("/file/", "/embed/");
+    return {
+      url: converted,
+      isEmbed: true,
+    };
+  } else if (redirectUrl.includes("krakenfiles.com")) {
+    const match = redirectUrl.match(/krakenfiles\.com\/view\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      return {
+        url: `https://krakenfiles.com/embed-video/${match[1]}`,
+        isEmbed: true,
+      };
+    }
+  } else if (redirectUrl.includes("acefile.co")) {
+    const match = redirectUrl.match(/acefile\.co\/f\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      return {
+        url: `https://acefile.co/player/${match[1]}`,
+        isEmbed: true,
+      };
+    }
+  }
+  return null;
+}
+
+
 export class AnimeApiService {
   /**
    * Fetch home page data (ongoing and completed) from Sanka API
@@ -310,6 +346,51 @@ export class AnimeApiService {
           }
 
           await Promise.all(resolvePromises);
+        }
+
+        // Parse and resolve 1080p and other high-quality mirrors from downloadUrl object robustly
+        const downloadData = d.downloadUrl || d.downloads;
+        const downloadQualities = Array.isArray(downloadData) ? downloadData : (downloadData?.qualities || []);
+        
+        if (downloadQualities.length > 0) {
+          const downloadPromises: Promise<any>[] = [];
+          
+          for (const dq of downloadQualities) {
+            const title = dq.title || "";
+            const qualityMatch = title.match(/(\d+p)/i);
+            const qualityName = qualityMatch ? qualityMatch[1] : title;
+            
+            if (Array.isArray(dq.urls)) {
+              for (const link of dq.urls) {
+                if (link.url) {
+                  const promise = (async () => {
+                    try {
+                      const resRedirect = await fetch(link.url, { redirect: "manual" });
+                      if (resRedirect && (resRedirect.status === 302 || resRedirect.status === 301)) {
+                        const redirectUrl = resRedirect.headers.get("location");
+                        if (redirectUrl) {
+                          const converted = convertToStreamUrl(redirectUrl);
+                          if (converted) {
+                            sources.push({
+                              url: converted.url,
+                              quality: `${qualityName} - ${link.title || "Download Mirror"}`,
+                              isM3U8: converted.url.includes(".m3u8") || false,
+                            });
+                            console.log(`[AnimeApiService] Successfully extracted high-quality stream source: ${qualityName} - ${link.title || "Mirror"}`);
+                          }
+                        }
+                      }
+                    } catch (err: any) {
+                      console.warn(`[AnimeApiService] Failed to resolve high-quality mirror for ${link.title}:`, err.message);
+                    }
+                  })();
+                  downloadPromises.push(promise);
+                }
+              }
+            }
+          }
+          
+          await Promise.all(downloadPromises);
         }
 
         // Fallback to defaultStreamingUrl if no mirror resolved

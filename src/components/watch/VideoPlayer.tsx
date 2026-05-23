@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import Hls from "hls.js";
 import {
   Play,
@@ -51,6 +52,10 @@ export default function VideoPlayer({
   const [activeSource, setActiveSource] = useState<VideoSource | null>(null);
   const [activeSubtitle, setActiveSubtitle] = useState<SubtitleTrack | null>(null);
   
+  // HLS level selection states
+  const [hlsLevels, setHlsLevels] = useState<{ index: number; name: string; height: number }[]>([]);
+  const [activeHlsLevel, setActiveHlsLevel] = useState<number>(-1); // -1 is Auto
+
   // UI states
   const [showControls, setShowControls] = useState(true);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
@@ -60,9 +65,9 @@ export default function VideoPlayer({
   // Initialize Source and Subtitles on mount/change
   useEffect(() => {
     if (streamSource && streamSource.sources && streamSource.sources.length > 0) {
-      console.log("[VideoPlayer] Detected mirrors:", streamSource.sources);
+      console.log("[VideoPlayer] [MAG Player Debug] Detected mirrors:", streamSource.sources);
       const qualities = Array.from(new Set(streamSource.sources.map((s) => s.quality)));
-      console.log("[VideoPlayer] Detected qualities:", qualities);
+      console.log("[VideoPlayer] [MAG Player Debug] Detected qualities:", qualities);
 
       setActiveSource(streamSource.sources[0]);
     } else {
@@ -76,6 +81,8 @@ export default function VideoPlayer({
       setActiveSubtitle(null);
     }
     setNextCountdown(null);
+    setHlsLevels([]);
+    setActiveHlsLevel(-1);
   }, [streamSource]);
 
   // Load HLS or normal MP4 stream
@@ -83,8 +90,8 @@ export default function VideoPlayer({
     const video = videoRef.current;
     if (!video || !activeSource) return;
 
-    console.log("[VideoPlayer] Selected source:", activeSource.quality);
-    console.log("[VideoPlayer] Stream URL:", activeSource.url);
+    console.log("[VideoPlayer] [MAG Player Debug] Selected source:", activeSource.quality);
+    console.log("[VideoPlayer] [MAG Player Debug] Stream URL:", activeSource.url);
 
     // Reset player states if we are not in the middle of a seamless quality switch
     if (!isSwitchingSourceRef.current) {
@@ -97,6 +104,9 @@ export default function VideoPlayer({
       hlsRef.current = null;
     }
 
+    setHlsLevels([]);
+    setActiveHlsLevel(-1);
+
     if (activeSource.isM3U8 && Hls.isSupported()) {
       const hls = new Hls({
         maxMaxBufferLength: 30, // 30 seconds buffer
@@ -108,7 +118,15 @@ export default function VideoPlayer({
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        // Ready to play
+        console.log("[VideoPlayer] [MAG Player Debug] HLS Manifest parsed. Level details:", hls.levels);
+        const levels = hls.levels.map((level, index) => ({
+          index,
+          name: level.name || (level.height ? `${level.height}p` : `Level ${index + 1}`),
+          height: level.height || 0,
+        }));
+        console.log("[VideoPlayer] [MAG Player Debug] HLS variants found:", levels.map(l => l.name));
+        setHlsLevels(levels);
+        setActiveHlsLevel(hls.currentLevel);
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
@@ -413,12 +431,12 @@ export default function VideoPlayer({
             >
               Retry Connection
             </button>
-            <a
+            <Link
               href="/"
               className="px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-all text-sm font-semibold"
             >
               Return Home
-            </a>
+            </Link>
           </div>
         </div>
       ) : isEmbed && activeSource ? (
@@ -662,22 +680,64 @@ export default function VideoPlayer({
                   <div className="px-3 py-1 text-xs text-muted-foreground font-semibold border-b border-white/5 pb-1">
                     Quality Selector
                   </div>
-                  {streamSource && streamSource.sources && streamSource.sources.map((src) => (
-                    <button
-                      key={src.url}
-                      onClick={() => {
-                        handleSourceChange(src);
-                        setShowSettingsMenu(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 rounded-lg transition-colors truncate ${
-                        activeSource?.url === src.url
-                          ? "bg-accent/20 text-accent font-bold"
-                          : "text-white hover:bg-white/5"
-                      }`}
-                    >
-                      {src.quality}
-                    </button>
-                  ))}
+                  {activeSource?.isM3U8 && hlsLevels.length > 0 ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          if (hlsRef.current) {
+                            hlsRef.current.currentLevel = -1;
+                            setActiveHlsLevel(-1);
+                            console.log("[VideoPlayer] [MAG Player Debug] Selected stream quality: Auto");
+                          }
+                          setShowSettingsMenu(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 rounded-lg transition-colors truncate ${
+                          activeHlsLevel === -1
+                            ? "bg-accent/20 text-accent font-bold"
+                            : "text-white hover:bg-white/5"
+                        }`}
+                      >
+                        Auto
+                      </button>
+                      {[...hlsLevels].sort((a, b) => b.height - a.height).map((level) => (
+                        <button
+                          key={level.index}
+                          onClick={() => {
+                            if (hlsRef.current) {
+                              hlsRef.current.currentLevel = level.index;
+                              setActiveHlsLevel(level.index);
+                              console.log(`[VideoPlayer] [MAG Player Debug] Selected stream quality: ${level.name}`);
+                            }
+                            setShowSettingsMenu(false);
+                          }}
+                          className={`w-full text-left px-3 py-1.5 rounded-lg transition-colors truncate ${
+                            activeHlsLevel === level.index
+                              ? "bg-accent/20 text-accent font-bold"
+                              : "text-white hover:bg-white/5"
+                          }`}
+                        >
+                          {level.name}
+                        </button>
+                      ))}
+                    </>
+                  ) : (
+                    streamSource && streamSource.sources && streamSource.sources.map((src) => (
+                      <button
+                        key={src.url}
+                        onClick={() => {
+                          handleSourceChange(src);
+                          setShowSettingsMenu(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 rounded-lg transition-colors truncate ${
+                          activeSource?.url === src.url
+                            ? "bg-accent/20 text-accent font-bold"
+                            : "text-white hover:bg-white/5"
+                        }`}
+                      >
+                        {src.quality}
+                      </button>
+                    ))
+                  )}
 
                   <div className="px-3 py-1 text-xs text-muted-foreground font-semibold border-t border-white/5 pt-1.5 mt-1 pb-1">
                     Playback Speed
