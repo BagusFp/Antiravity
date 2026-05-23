@@ -39,6 +39,20 @@ function convertToStreamUrl(redirectUrl: string): { url: string; isEmbed: boolea
   return null;
 }
 
+function isNonAnime(title: string, id: string): boolean {
+  const t = (title || "").toLowerCase();
+  const i = (id || "").toLowerCase();
+  return (
+    t.includes("donghua") || i.includes("donghua") ||
+    t.includes("dracin") || i.includes("dracin") ||
+    t.includes("drakor") || i.includes("drakor") ||
+    t.includes("drama") || i.includes("drama") ||
+    t.includes("nekopoi") || i.includes("nekopoi") ||
+    t.includes("hentai") || i.includes("hentai") ||
+    t.includes("adult") || i.includes("adult")
+  );
+}
+
 
 export class AnimeApiService {
   /**
@@ -51,24 +65,28 @@ export class AnimeApiService {
       const res = await resilientFetch<any>(url);
 
       if (res && res.data) {
-        const ongoing = (res.data.ongoing?.animeList || []).map((item: any) => ({
-          id: `otakudesu:${item.animeId || ""}`,
-          title: item.title || "Untitled",
-          image: item.poster || "",
-          episodesCount: typeof item.episodes === "number" ? item.episodes : parseInt(item.episodes) || undefined,
-          status: "Ongoing",
-          releaseDay: item.releaseDay || "",
-          latestReleaseDate: item.latestReleaseDate || "",
-        }));
+        const ongoing = (res.data.ongoing?.animeList || [])
+          .filter((item: any) => !isNonAnime(item.title, item.animeId))
+          .map((item: any) => ({
+            id: `otakudesu:${item.animeId || ""}`,
+            title: item.title || "Untitled",
+            image: item.poster || "",
+            episodesCount: typeof item.episodes === "number" ? item.episodes : parseInt(item.episodes) || undefined,
+            status: "Ongoing",
+            releaseDay: item.releaseDay || "",
+            latestReleaseDate: item.latestReleaseDate || "",
+          }));
 
-        const completed = (res.data.completed?.animeList || []).map((item: any) => ({
-          id: `otakudesu:${item.animeId || ""}`,
-          title: item.title || "Untitled",
-          image: item.poster || "",
-          rating: item.score || undefined,
-          episodesCount: typeof item.episodes === "number" ? item.episodes : parseInt(item.episodes) || undefined,
-          status: "Completed",
-        }));
+        const completed = (res.data.completed?.animeList || [])
+          .filter((item: any) => !isNonAnime(item.title, item.animeId))
+          .map((item: any) => ({
+            id: `otakudesu:${item.animeId || ""}`,
+            title: item.title || "Untitled",
+            image: item.poster || "",
+            rating: item.score || undefined,
+            episodesCount: typeof item.episodes === "number" ? item.episodes : parseInt(item.episodes) || undefined,
+            status: "Completed",
+          }));
 
         return {
           trending: ongoing.slice(0, 10),
@@ -94,15 +112,17 @@ export class AnimeApiService {
       const res = await resilientFetch<any>(url);
 
       if (res && res.data && res.data.animeList) {
-        const animeList = res.data.animeList.map((item: any) => ({
-          id: `otakudesu:${item.animeId || ""}`,
-          title: item.title || "Untitled",
-          image: item.poster || "",
-          episodesCount: typeof item.episodes === "number" ? item.episodes : parseInt(item.episodes) || undefined,
-          status: "Ongoing",
-          releaseDay: item.releaseDay || "",
-          latestReleaseDate: item.latestReleaseDate || "",
-        }));
+        const animeList = res.data.animeList
+          .filter((item: any) => !isNonAnime(item.title, item.animeId))
+          .map((item: any) => ({
+            id: `otakudesu:${item.animeId || ""}`,
+            title: item.title || "Untitled",
+            image: item.poster || "",
+            episodesCount: typeof item.episodes === "number" ? item.episodes : parseInt(item.episodes) || undefined,
+            status: "Ongoing",
+            releaseDay: item.releaseDay || "",
+            latestReleaseDate: item.latestReleaseDate || "",
+          }));
 
         const pagination = {
           currentPage: res.pagination?.currentPage || page,
@@ -147,14 +167,16 @@ export class AnimeApiService {
       const res = await resilientFetch<any>(url);
 
       if (res && res.data && res.data.animeList) {
-        const animeList = res.data.animeList.map((item: any) => ({
-          id: `otakudesu:${item.animeId || ""}`,
-          title: item.title || "Untitled",
-          image: item.poster || "",
-          rating: item.score || undefined,
-          episodesCount: typeof item.episodes === "number" ? item.episodes : parseInt(item.episodes) || undefined,
-          status: "Completed",
-        }));
+        const animeList = res.data.animeList
+          .filter((item: any) => !isNonAnime(item.title, item.animeId))
+          .map((item: any) => ({
+            id: `otakudesu:${item.animeId || ""}`,
+            title: item.title || "Untitled",
+            image: item.poster || "",
+            rating: item.score || undefined,
+            episodesCount: typeof item.episodes === "number" ? item.episodes : parseInt(item.episodes) || undefined,
+            status: "Completed",
+          }));
 
         const pagination = {
           currentPage: res.pagination?.currentPage || page,
@@ -199,13 +221,15 @@ export class AnimeApiService {
       const res = await resilientFetch<any>(url);
 
       if (res && res.data && res.data.animeList) {
-        return res.data.animeList.map((item: any) => ({
-          id: `otakudesu:${item.animeId || ""}`,
-          title: item.title || "Untitled",
-          image: item.poster || "",
-          status: item.status || "Unknown",
-          rating: item.score || undefined,
-        }));
+        return res.data.animeList
+          .filter((item: any) => !isNonAnime(item.title, item.animeId))
+          .map((item: any) => ({
+            id: `otakudesu:${item.animeId || ""}`,
+            title: item.title || "Untitled",
+            image: item.poster || "",
+            status: item.status || "Unknown",
+            rating: item.score || undefined,
+          }));
       }
       return [];
     } catch (error) {
@@ -227,6 +251,11 @@ export class AnimeApiService {
 
       if (res && res.data) {
         const d = res.data;
+        
+        // Strict blocking of non-anime detailed view requests
+        if (isNonAnime(d.title || "", animeId) || (d.genreList && d.genreList.some((g: any) => isNonAnime(g.title || "", g.title || "")))) {
+          throw new Error("This category/show is not supported on MyAnimeGW.");
+        }
         
         // Map episodes list robustly
         const episodes = (d.episodeList || []).map((ep: any) => {
@@ -289,6 +318,12 @@ export class AnimeApiService {
 
       if (res && res.data) {
         const d = res.data;
+        
+        // Strict blocking of non-anime streaming resources
+        if (isNonAnime(d.title || "", d.animeId || "") || isNonAnime(episodeId, "")) {
+          throw new Error("This category/show is not supported on MyAnimeGW.");
+        }
+        
         const sources: VideoSource[] = [];
         
         // Resolve all servers in parallel so the player can switch dynamically

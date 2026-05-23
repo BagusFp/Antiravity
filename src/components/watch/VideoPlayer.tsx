@@ -25,6 +25,45 @@ interface VideoPlayerProps {
   errorMsg?: string | null;
 }
 
+interface GroupedServer {
+  serverName: string;
+  sources: {
+    qualityLabel: string;
+    source: VideoSource;
+  }[];
+}
+
+const groupSources = (sources: VideoSource[]): GroupedServer[] => {
+  const groups: Record<string, { qualityLabel: string; source: VideoSource }[]> = {};
+  
+  sources.forEach((src) => {
+    let qualityLabel = "HD";
+    let serverName = "Server";
+    
+    if (src.quality.includes(" - ")) {
+      const parts = src.quality.split(" - ");
+      qualityLabel = parts[0].trim();
+      serverName = parts[1].trim();
+    } else {
+      qualityLabel = src.quality;
+      serverName = "Server";
+    }
+    
+    if (!groups[serverName]) {
+      groups[serverName] = [];
+    }
+    
+    if (!groups[serverName].some(item => item.source.url === src.url)) {
+      groups[serverName].push({ qualityLabel, source: src });
+    }
+  });
+  
+  return Object.keys(groups).map((serverName) => ({
+    serverName,
+    sources: groups[serverName],
+  }));
+};
+
 export default function VideoPlayer({
   streamSource,
   onNextEpisode,
@@ -52,6 +91,9 @@ export default function VideoPlayer({
   const [activeSource, setActiveSource] = useState<VideoSource | null>(null);
   const [activeSubtitle, setActiveSubtitle] = useState<SubtitleTrack | null>(null);
   
+  // Grouped server selection states
+  const [selectedServerName, setSelectedServerName] = useState<string>("");
+
   // HLS level selection states
   const [hlsLevels, setHlsLevels] = useState<{ index: number; name: string; height: number }[]>([]);
   const [activeHlsLevel, setActiveHlsLevel] = useState<number>(-1); // -1 is Auto
@@ -65,13 +107,59 @@ export default function VideoPlayer({
   // Initialize Source and Subtitles on mount/change
   useEffect(() => {
     if (streamSource && streamSource.sources && streamSource.sources.length > 0) {
-      console.log("[VideoPlayer] [MAG Player Debug] Detected mirrors:", streamSource.sources);
-      const qualities = Array.from(new Set(streamSource.sources.map((s) => s.quality)));
-      console.log("[VideoPlayer] [MAG Player Debug] Detected qualities:", qualities);
+      const grouped = groupSources(streamSource.sources);
+      
+      console.log("[VideoPlayer] [MAG Player Debug] Detected Servers:", grouped.map(s => s.serverName));
+      console.log("[VideoPlayer] [MAG Player Debug] Available Qualities per Server:");
+      grouped.forEach(srv => {
+        console.log(`  - Server: ${srv.serverName} -> [${srv.sources.map(s => s.qualityLabel).join(", ")}]`);
+      });
 
-      setActiveSource(streamSource.sources[0]);
+      // Smart Default Selection
+      const serverScore = (name: string) => {
+        const n = name.toLowerCase();
+        if (n.includes("default") || n.includes("server")) return 100;
+        if (n.includes("pixeldrain") || n.includes("pdrain") || n.includes("odfiles")) return 90;
+        if (n.includes("acefile")) return 80;
+        if (n.includes("mega")) return 70;
+        if (n.includes("krakenfiles") || n.includes("kfiles")) return 60;
+        return 50; // Vidhide, Filedon, Filemoon, etc.
+      };
+
+      const sortedServers = [...grouped].sort((a, b) => {
+        const scoreA = serverScore(a.serverName);
+        const scoreB = serverScore(b.serverName);
+        if (scoreA !== scoreB) return scoreB - scoreA;
+        return a.serverName.localeCompare(b.serverName);
+      });
+
+      const bestServer = sortedServers[0];
+
+      const qualityScore = (label: string) => {
+        const l = label.toLowerCase();
+        if (l.includes("1080")) return 1000;
+        if (l.includes("720")) return 720;
+        if (l.includes("480")) return 480;
+        if (l.includes("360")) return 360;
+        return 0;
+      };
+
+      const sortedSources = [...bestServer.sources].sort((a, b) => {
+        return qualityScore(b.qualityLabel) - qualityScore(a.qualityLabel);
+      });
+
+      const bestSource = sortedSources[0].source;
+
+      setSelectedServerName(bestServer.serverName);
+      setActiveSource(bestSource);
+
+      console.log("[VideoPlayer] [MAG Player Debug] Smart Default Selection:");
+      console.log(`  - Selected Best Server: ${bestServer.serverName}`);
+      console.log(`  - Selected Highest Stable Quality: ${sortedSources[0].qualityLabel}`);
+      console.log(`  - Stream URL: ${bestSource.url}`);
     } else {
       setActiveSource(null);
+      setSelectedServerName("");
     }
     
     if (streamSource && streamSource.subtitles) {
@@ -255,8 +343,8 @@ export default function VideoPlayer({
   }, [nextCountdown, onNextEpisode]);
 
   const handleSourceChange = (src: VideoSource) => {
-    console.log("[VideoPlayer] Switching source to:", src.quality);
-    console.log("[VideoPlayer] Stream URL:", src.url);
+    console.log("[VideoPlayer] [MAG Player Debug] Selected Mirror:", src.quality);
+    console.log("[VideoPlayer] [MAG Player Debug] Stream URL:", src.url);
     
     const video = videoRef.current;
     if (video) {
@@ -775,9 +863,10 @@ export default function VideoPlayer({
       </div>
     </div>
 
-      {/* Premium Quality / Server Mirror Selector Panel */}
+      {/* Grouped Premium Server & Quality Mirror Selector */}
       {streamSource && streamSource.sources && streamSource.sources.length > 0 && (
-        <div className="p-5 rounded-2xl bg-muted/20 border border-white/5 space-y-4 animate-fade-in shadow-xl backdrop-blur-md">
+        <div className="p-5 rounded-2xl bg-muted/20 border border-white/5 space-y-5 animate-fade-in shadow-xl backdrop-blur-md">
+          {/* Header */}
           <div className="flex items-center justify-between">
             <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse shadow-md shadow-accent/50" />
@@ -788,24 +877,97 @@ export default function VideoPlayer({
             </span>
           </div>
 
-          <div className="flex flex-wrap gap-2.5 max-h-[160px] overflow-y-auto pr-1 select-none scrollbar-thin">
-            {streamSource.sources.map((src, idx) => {
-              const isActive = activeSource?.url === src.url;
-              return (
-                <button
-                  key={src.url}
-                  onClick={() => handleSourceChange(src)}
-                  className={`text-xs px-4 py-2.5 rounded-xl font-bold transition-all duration-200 border flex items-center gap-2 hover:-translate-y-[1.5px] hover:shadow-md active:translate-y-0 ${
-                    isActive
-                      ? "bg-accent/15 border-accent text-accent font-extrabold shadow-lg shadow-accent/15 scale-[1.02]"
-                      : "bg-white/5 border-white/5 text-white/70 hover:text-white hover:bg-white/10 hover:border-white/10"
-                  }`}
-                >
-                  <Play className={`w-3.5 h-3.5 ${isActive ? "fill-current" : ""}`} />
-                  <span>{src.quality}</span>
-                </button>
-              );
-            })}
+          {/* Grouped Selector Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
+            
+            {/* Step 1: Server Selection */}
+            <div className="space-y-3">
+              <label className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                Step 1: Select Server Mirror
+              </label>
+              <div className="flex sm:flex-wrap gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-thin select-none touch-pan-x">
+                {groupSources(streamSource.sources).map((srv) => {
+                  const isActive = selectedServerName === srv.serverName;
+                  return (
+                    <button
+                      key={srv.serverName}
+                      onClick={() => {
+                        setSelectedServerName(srv.serverName);
+                        // Auto-select highest quality on server switch
+                        const qualityScore = (label: string) => {
+                          const l = label.toLowerCase();
+                          if (l.includes("1080")) return 1000;
+                          if (l.includes("720")) return 720;
+                          if (l.includes("480")) return 480;
+                          if (l.includes("360")) return 360;
+                          return 0;
+                        };
+                        const sorted = [...srv.sources].sort((a, b) => qualityScore(b.qualityLabel) - qualityScore(a.qualityLabel));
+                        handleSourceChange(sorted[0].source);
+                      }}
+                      className={`text-xs px-4 py-3 rounded-xl font-bold transition-all duration-200 border shrink-0 hover:-translate-y-[1px] hover:shadow-md active:translate-y-0 ${
+                        isActive
+                          ? "bg-accent/15 border-accent text-accent font-extrabold shadow-lg shadow-accent/10 scale-[1.02]"
+                          : "bg-white/5 border-white/5 text-white/70 hover:text-white hover:bg-white/10 hover:border-white/10"
+                      }`}
+                    >
+                      {srv.serverName}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Step 2: Quality Selection */}
+            <div className="space-y-3">
+              <label className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                Step 2: Select Quality
+              </label>
+              <div className="flex flex-wrap gap-2 select-none">
+                {(() => {
+                  const srv = groupSources(streamSource.sources).find(
+                    (s) => s.serverName === selectedServerName
+                  );
+                  if (!srv) {
+                    return (
+                      <p className="text-xs text-muted-foreground italic py-2">
+                        Please select a server first.
+                      </p>
+                    );
+                  }
+                  
+                  // Sort qualities: highest to lowest
+                  const qualityScore = (label: string) => {
+                    const l = label.toLowerCase();
+                    if (l.includes("1080")) return 1000;
+                    if (l.includes("720")) return 720;
+                    if (l.includes("480")) return 480;
+                    if (l.includes("360")) return 360;
+                    return 0;
+                  };
+                  const sortedSources = [...srv.sources].sort((a, b) => qualityScore(b.qualityLabel) - qualityScore(a.qualityLabel));
+
+                  return sortedSources.map((item) => {
+                    const isActive = activeSource?.url === item.source.url;
+                    return (
+                      <button
+                        key={item.source.url}
+                        onClick={() => handleSourceChange(item.source)}
+                        className={`text-xs px-4 py-3 rounded-xl font-bold transition-all duration-200 border flex items-center gap-1.5 hover:-translate-y-[1px] hover:shadow-md active:translate-y-0 ${
+                          isActive
+                            ? "bg-purple-600 border-purple-500 text-white font-extrabold shadow-lg shadow-purple-600/30 scale-[1.02]"
+                            : "bg-white/5 border-white/5 text-white/70 hover:text-white hover:bg-white/10 hover:border-white/10"
+                        }`}
+                      >
+                        <Play className={`w-3 h-3 ${isActive ? "fill-current animate-pulse" : ""}`} />
+                        <span>{item.qualityLabel}</span>
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+
           </div>
         </div>
       )}
