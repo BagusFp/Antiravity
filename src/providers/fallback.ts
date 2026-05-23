@@ -142,14 +142,28 @@ class ProviderManager {
   async getRecommendations(id: string): Promise<AnimeSearchResult[]> {
     try {
       console.log(`[Fallback Manager] Fetching Recommendations for "${id}" - Primary: Sanka Anime API`);
-      const detail = await AnimeApiService.getAnimeDetail(id);
-      if (detail && detail.genres.length > 0) {
-        const matchingResults = await AnimeApiService.searchAnime(detail.genres[0], "otakudesu");
-        return matchingResults.filter(a => a.id !== id).slice(0, 6);
+      
+      const detail = await AnimeApiService.getAnimeDetail(id).catch((err) => {
+        console.warn("[Fallback Manager] Details failed during recommendations fetch:", err.message || err);
+        return null;
+      });
+
+      if (detail && Array.isArray(detail.genres) && detail.genres.length > 0) {
+        const primaryGenre = detail.genres[0];
+        if (primaryGenre) {
+          const matchingResults = await AnimeApiService.searchAnime(primaryGenre, "otakudesu").catch((err) => {
+            console.warn("[Fallback Manager] Search failed during recommendations matching:", err.message || err);
+            return [];
+          });
+
+          if (Array.isArray(matchingResults)) {
+            return matchingResults.filter(a => a && a.id !== id).slice(0, 6);
+          }
+        }
       }
       return [];
-    } catch (error) {
-      console.error("[Fallback Manager] Recommendations failed. Returning empty list.");
+    } catch (error: any) {
+      console.error("[Fallback Manager] Recommendations failed. Returning empty list.", error.message || error);
       return [];
     }
   }

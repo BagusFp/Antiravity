@@ -22,9 +22,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error("[API search] Error:", error.message);
-    return NextResponse.json(
-      { error: "Search request failed", details: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json([], {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
   }
 }

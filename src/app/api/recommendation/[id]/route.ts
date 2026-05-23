@@ -23,9 +23,10 @@ export async function GET(
     });
   } catch (error: any) {
     console.error("[API recommendation] Error:", error.message);
-    return NextResponse.json(
-      { error: "Failed to fetch recommendations", details: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json([], {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
   }
 }

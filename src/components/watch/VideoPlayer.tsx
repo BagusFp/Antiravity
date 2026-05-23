@@ -74,6 +74,26 @@ export default function VideoPlayer({
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
+  // Filter out unwanted providers and invalid urls
+  const filteredSources = (streamSource?.sources || []).filter(src => {
+    if (!src || !src.url) return false;
+    const q = src.quality.toLowerCase();
+    const u = src.url.toLowerCase();
+    
+    // Completely exclude Pdrain and Acefile
+    if (q.includes("pdrain") || q.includes("pixeldrain") || q.includes("acefile") ||
+        u.includes("pixeldrain.com") || u.includes("pdrain") || u.includes("acefile.co") || u.includes("acefile")) {
+      return false;
+    }
+    
+    // Ignore folders or download-only/invalid urls
+    if (u.includes("mega.nz/folder") || u.includes("mega.nz/#f!")) {
+      return false;
+    }
+
+    return true;
+  });
+
   // Switching quality source trackers
   const prevTimeRef = useRef<number>(0);
   const prevPlayingRef = useRef<boolean>(false);
@@ -106,8 +126,8 @@ export default function VideoPlayer({
 
   // Initialize Source and Subtitles on mount/change
   useEffect(() => {
-    if (streamSource && streamSource.sources && streamSource.sources.length > 0) {
-      const grouped = groupSources(streamSource.sources);
+    if (streamSource && filteredSources.length > 0) {
+      const grouped = groupSources(filteredSources);
       
       console.log("[VideoPlayer] [MAG Player Debug] Detected Servers:", grouped.map(s => s.serverName));
       console.log("[VideoPlayer] [MAG Player Debug] Available Qualities per Server:");
@@ -115,20 +135,41 @@ export default function VideoPlayer({
         console.log(`  - Server: ${srv.serverName} -> [${srv.sources.map(s => s.qualityLabel).join(", ")}]`);
       });
 
-      // Smart Default Selection
-      const serverScore = (name: string) => {
-        const n = name.toLowerCase();
-        if (n.includes("default") || n.includes("server")) return 100;
-        if (n.includes("pixeldrain") || n.includes("pdrain") || n.includes("odfiles")) return 90;
-        if (n.includes("acefile")) return 80;
-        if (n.includes("mega")) return 70;
-        if (n.includes("krakenfiles") || n.includes("kfiles")) return 60;
-        return 50; // Vidhide, Filedon, Filemoon, etc.
+      // Smart Default Selection with prioritization of direct/HLS sources
+      const serverScore = (srv: GroupedServer) => {
+        const name = srv.serverName.toLowerCase();
+        
+        // Prioritize direct/HLS streams over embeds
+        const hasDirect = srv.sources.some(s => s.source.isM3U8 || s.source.url.includes(".mp4") || s.source.url.includes(".m3u8"));
+        
+        let score = 50;
+        
+        if (name.includes("ondesuhd") || name.includes("ondesu")) {
+          score = 150;
+        } else if (name.includes("default") || name.includes("server")) {
+          score = 120;
+        } else if (name.includes("desustream") || name.includes("kuroanime")) {
+          score = 110;
+        } else if (name.includes("gofile") || name.includes("odfiles")) {
+          score = 90;
+        } else if (name.includes("mega")) {
+          score = 80;
+        } else if (name.includes("krakenfiles") || name.includes("kfiles")) {
+          score = 70;
+        } else if (name.includes("vidhide") || name.includes("filedon") || name.includes("filemoon") || name.includes("streamwish")) {
+          score = 60;
+        }
+        
+        if (hasDirect) {
+          score += 50;
+        }
+        
+        return score;
       };
 
       const sortedServers = [...grouped].sort((a, b) => {
-        const scoreA = serverScore(a.serverName);
-        const scoreB = serverScore(b.serverName);
+        const scoreA = serverScore(a);
+        const scoreB = serverScore(b);
         if (scoreA !== scoreB) return scoreB - scoreA;
         return a.serverName.localeCompare(b.serverName);
       });
@@ -484,6 +525,7 @@ export default function VideoPlayer({
         (activeSource.url.includes("embed") ||
           activeSource.url.includes("iframe") ||
           activeSource.url.includes("player") ||
+          activeSource.url.includes("mega.nz") ||
           activeSource.quality === "HD Embed" ||
           activeSource.quality.includes("Embed") ||
           (!activeSource.url.includes(".m3u8") && !activeSource.url.includes(".mp4") && !activeSource.url.includes("googlevideo") && !activeSource.url.includes("videoplayback"))))
@@ -809,7 +851,7 @@ export default function VideoPlayer({
                       ))}
                     </>
                   ) : (
-                    streamSource && streamSource.sources && streamSource.sources.map((src) => (
+                    filteredSources.map((src) => (
                       <button
                         key={src.url}
                         onClick={() => {
@@ -864,7 +906,7 @@ export default function VideoPlayer({
     </div>
 
       {/* Grouped Premium Server & Quality Mirror Selector */}
-      {streamSource && streamSource.sources && streamSource.sources.length > 0 && (
+      {streamSource && filteredSources && filteredSources.length > 0 && (
         <div className="p-5 rounded-2xl bg-muted/20 border border-white/5 space-y-5 animate-fade-in shadow-xl backdrop-blur-md">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -873,7 +915,7 @@ export default function VideoPlayer({
               Available Server Mirrors & Qualities
             </h3>
             <span className="text-[10px] text-muted-foreground bg-white/5 border border-white/10 px-3 py-1 rounded-full font-semibold uppercase tracking-wider">
-              {streamSource.sources.length} Active Mirrors
+              {filteredSources.length} Active Mirrors
             </span>
           </div>
 
@@ -886,7 +928,7 @@ export default function VideoPlayer({
                 Step 1: Select Server Mirror
               </label>
               <div className="flex sm:flex-wrap gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-thin select-none touch-pan-x">
-                {groupSources(streamSource.sources).map((srv) => {
+                {groupSources(filteredSources).map((srv) => {
                   const isActive = selectedServerName === srv.serverName;
                   return (
                     <button
@@ -925,7 +967,7 @@ export default function VideoPlayer({
               </label>
               <div className="flex flex-wrap gap-2 select-none">
                 {(() => {
-                  const srv = groupSources(streamSource.sources).find(
+                  const srv = groupSources(filteredSources).find(
                     (s) => s.serverName === selectedServerName
                   );
                   if (!srv) {

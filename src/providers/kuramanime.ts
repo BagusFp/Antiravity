@@ -2,6 +2,7 @@ import { IAnimeProvider } from "./base";
 import { AnimeSearchResult, AnimeDetail, StreamSource, Episode } from "@/types/anime";
 import { resilientFetch } from "@/services/fetcher";
 import { CacheService } from "@/services/cache";
+import { isPlayableUrl, isValidUrl, normalizeMegaUrl } from "@/services/anime-api";
 import * as cheerio from "cheerio";
 
 const KURAMANIME_BASE = "https://v18.kuramanime.ing";
@@ -297,14 +298,19 @@ export class KuramanimeProvider implements IAnimeProvider {
           // Parse direct video files (Kuramadrive s1)
           $("video source, source").each((_, el) => {
             const $el = $(el);
-            const src = $el.attr("src") || "";
+            let src = $el.attr("src") || "";
             const quality = $el.attr("size") || "HD";
             if (src) {
-              sources.push({
-                url: src,
-                quality: `${quality}p`,
-                isM3U8: src.includes(".m3u8"),
-              });
+              if (src.includes("mega.nz")) {
+                src = normalizeMegaUrl(src);
+              }
+              if (isPlayableUrl(src) && isValidUrl(src)) {
+                sources.push({
+                  url: src,
+                  quality: `${quality}p`,
+                  isM3U8: src.includes(".m3u8"),
+                });
+              }
             }
           });
 
@@ -312,7 +318,7 @@ export class KuramanimeProvider implements IAnimeProvider {
           $("iframe").each((_, el) => {
             const src = $(el).attr("src") || "";
             if (src) {
-              const url = src.startsWith("//") ? `https:${src}` : src;
+              let url = src.startsWith("//") ? `https:${src}` : src;
               let quality = "HD Embed";
               
               if (url.includes("filemoon")) {
@@ -321,15 +327,18 @@ export class KuramanimeProvider implements IAnimeProvider {
                 quality = "StreamWish";
               } else if (url.includes("mega.nz")) {
                 quality = "Mega";
+                url = normalizeMegaUrl(url);
               } else if (url.includes("kuramadrive") || url.includes("asuna.my.id")) {
                 quality = "Kuramadrive";
               }
 
-              sources.push({
-                url,
-                quality,
-                isM3U8: url.includes(".m3u8"),
-              });
+              if (isPlayableUrl(url) && isValidUrl(url)) {
+                sources.push({
+                  url,
+                  quality,
+                  isM3U8: url.includes(".m3u8"),
+                });
+              }
             }
           });
 

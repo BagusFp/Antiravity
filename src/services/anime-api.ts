@@ -4,17 +4,48 @@ import { AnimeSearchResult, AnimeDetail, StreamSource, VideoSource, HomeData, Pa
 // We retrieve NEXT_PUBLIC_ANIME_API from process.env, defaulting to https://www.sankavollerei.com/anime
 const API_BASE = process.env.NEXT_PUBLIC_ANIME_API || "https://www.sankavollerei.com/anime";
 
+export function normalizeMegaUrl(url: string): string {
+  if (!url.includes("mega.nz")) return url;
+  if (url.includes("/folder/") || url.includes("/#F!")) return url;
+  let converted = url.replace("/file/", "/embed/");
+  if (converted.includes("/#!") && !converted.includes("/embed/")) {
+    converted = converted.replace("/#!", "/embed/#!");
+  }
+  return converted;
+}
+
+export function isPlayableUrl(url: string): boolean {
+  if (!url) return false;
+  const u = url.toLowerCase();
+  if (u.includes("pixeldrain.com") || u.includes("pdrain") || u.includes("acefile.co") || u.includes("acefile")) {
+    return false;
+  }
+  if (u.includes("mega.nz/folder") || u.includes("mega.nz/#f!")) {
+    return false;
+  }
+  if (
+    u.includes("donghua") ||
+    u.includes("dracin") ||
+    u.includes("drakor") ||
+    u.includes("nekopoi") ||
+    u.includes("hentai") ||
+    u.includes("adult")
+  ) {
+    return false;
+  }
+  return true;
+}
+
+export function isValidUrl(url: string): boolean {
+  if (!url) return false;
+  const u = url.trim().toLowerCase();
+  if (u === "" || u.startsWith("javascript:") || u === "#") return false;
+  return u.startsWith("http://") || u.startsWith("https://") || u.startsWith("//");
+}
+
 function convertToStreamUrl(redirectUrl: string): { url: string; isEmbed: boolean } | null {
-  if (redirectUrl.includes("pixeldrain.com")) {
-    const match = redirectUrl.match(/pixeldrain\.com\/u\/([a-zA-Z0-9_-]+)/);
-    if (match) {
-      return {
-        url: `https://pixeldrain.com/api/file/${match[1]}`,
-        isEmbed: false,
-      };
-    }
-  } else if (redirectUrl.includes("mega.nz")) {
-    const converted = redirectUrl.replace("/file/", "/embed/");
+  if (redirectUrl.includes("mega.nz")) {
+    const converted = normalizeMegaUrl(redirectUrl);
     return {
       url: converted,
       isEmbed: true,
@@ -27,11 +58,11 @@ function convertToStreamUrl(redirectUrl: string): { url: string; isEmbed: boolea
         isEmbed: true,
       };
     }
-  } else if (redirectUrl.includes("acefile.co")) {
-    const match = redirectUrl.match(/acefile\.co\/f\/([a-zA-Z0-9_-]+)/);
+  } else if (redirectUrl.includes("gofile.io")) {
+    const match = redirectUrl.match(/gofile\.io\/d\/([a-zA-Z0-9_-]+)/);
     if (match) {
       return {
-        url: `https://acefile.co/player/${match[1]}`,
+        url: redirectUrl,
         isEmbed: true,
       };
     }
@@ -46,10 +77,8 @@ function isNonAnime(title: string, id: string): boolean {
     t.includes("donghua") || i.includes("donghua") ||
     t.includes("dracin") || i.includes("dracin") ||
     t.includes("drakor") || i.includes("drakor") ||
-    t.includes("drama") || i.includes("drama") ||
     t.includes("nekopoi") || i.includes("nekopoi") ||
-    t.includes("hentai") || i.includes("hentai") ||
-    t.includes("adult") || i.includes("adult")
+    t.includes("hentai") || i.includes("hentai")
   );
 }
 
@@ -364,11 +393,19 @@ export class AnimeApiService {
                           }
                         }
 
-                        sources.push({
-                          url: finalUrl,
-                          quality: `${qualityName} - ${server.title || "Server"}`,
-                          isM3U8: finalUrl.includes(".m3u8") || false,
-                        });
+                        // Apply direct Mega URL normalization/conversion
+                        if (finalUrl.includes("mega.nz")) {
+                          finalUrl = normalizeMegaUrl(finalUrl);
+                        }
+
+                        // Filter out unwanted providers and invalid urls
+                        if (isPlayableUrl(finalUrl) && isValidUrl(finalUrl)) {
+                          sources.push({
+                            url: finalUrl,
+                            quality: `${qualityName} - ${server.title || "Server"}`,
+                            isM3U8: finalUrl.includes(".m3u8") || false,
+                          });
+                        }
                       }
                     } catch (err: any) {
                       console.warn(`[AnimeApiService] Failed to resolve server ID ${server.serverId}:`, err.message);
@@ -398,12 +435,23 @@ export class AnimeApiService {
             if (Array.isArray(dq.urls)) {
               for (const link of dq.urls) {
                 if (link.url) {
+                  // Skip unwanted providers early (before fetching)
+                  const lowerTitle = (link.title || "").toLowerCase();
+                  if (lowerTitle.includes("pdrain") || lowerTitle.includes("pixeldrain") || lowerTitle.includes("acefile")) {
+                    continue;
+                  }
+
                   const promise = (async () => {
                     try {
                       const resRedirect = await fetch(link.url, { redirect: "manual" });
                       if (resRedirect && (resRedirect.status === 302 || resRedirect.status === 301)) {
                         const redirectUrl = resRedirect.headers.get("location");
                         if (redirectUrl) {
+                          // Filter out unwanted redirect destinations early
+                          if (!isPlayableUrl(redirectUrl) || !isValidUrl(redirectUrl)) {
+                            return;
+                          }
+
                           const converted = convertToStreamUrl(redirectUrl);
                           if (converted) {
                             sources.push({
@@ -430,11 +478,14 @@ export class AnimeApiService {
 
         // Fallback to defaultStreamingUrl if no mirror resolved
         if (sources.length === 0 && d.defaultStreamingUrl) {
-          sources.push({
-            url: d.defaultStreamingUrl,
-            quality: "Default - Server",
-            isM3U8: d.defaultStreamingUrl.includes(".m3u8"),
-          });
+          const fallbackUrl = d.defaultStreamingUrl.includes("mega.nz") ? normalizeMegaUrl(d.defaultStreamingUrl) : d.defaultStreamingUrl;
+          if (isPlayableUrl(fallbackUrl) && isValidUrl(fallbackUrl)) {
+            sources.push({
+              url: fallbackUrl,
+              quality: "Default - Server",
+              isM3U8: fallbackUrl.includes(".m3u8"),
+            });
+          }
         }
 
         if (sources.length === 0) {

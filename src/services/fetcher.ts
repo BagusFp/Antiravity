@@ -48,11 +48,17 @@ export const resilientFetch = async <T>(url: string, options: FetchOptions = {})
         throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
       }
 
+      const text = await response.text();
       const contentType = response.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
-        return (await response.json()) as T;
+        try {
+          return JSON.parse(text) as T;
+        } catch (jsonErr: any) {
+          console.warn(`[Fetcher JSON Parse Error] URL: ${url}. Invalid JSON structure: ${text.slice(0, 100)}...`);
+          throw new Error(`Invalid JSON response: ${jsonErr.message}`);
+        }
       } else {
-        return (await response.text()) as unknown as T;
+        return text as unknown as T;
       }
     } catch (error: any) {
       clearTimeout(id);
