@@ -2,6 +2,7 @@ interface FetchOptions extends RequestInit {
   timeout?: number;
   retries?: number;
   backoffMs?: number;
+  throwOnError?: boolean;
 }
 
 const activeRequests = new Map<string, Promise<any>>();
@@ -11,6 +12,7 @@ export const resilientFetch = async <T>(url: string, options: FetchOptions = {})
     timeout = 10000, // 10 seconds default timeout
     retries = 3,     // 3 retries default
     backoffMs = 500, // starting backoff delay
+    throwOnError = false, // do not throw by default, return null on failure
     headers,
     ...rest
   } = options;
@@ -73,11 +75,15 @@ export const resilientFetch = async <T>(url: string, options: FetchOptions = {})
         return executeFetch(attempt + 1);
       }
 
-      throw new Error(
-        isTimeout
-          ? `Request timed out after ${timeout}ms: ${url}`
-          : `Fetch failed for ${url}: ${error.message}`
-      );
+      if (throwOnError) {
+        throw new Error(
+          isTimeout
+            ? `Request timed out after ${timeout}ms: ${url}`
+            : `Fetch failed for ${url}: ${error.message}`
+        );
+      }
+
+      return null as unknown as T;
     }
   };
 

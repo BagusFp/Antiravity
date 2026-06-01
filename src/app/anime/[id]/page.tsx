@@ -61,6 +61,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
             <img
               src={detail.image}
               alt={detail.title}
+              style={{ viewTransitionName: `anime-card-${id}` }}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           </div>
