@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Star, Play, Calendar, Film, Bookmark, Share2 } from "lucide-react";
+import { Star, Play, Calendar, Film } from "lucide-react";
 import fallbackManager from "@/providers/fallback";
 import AnimeCard from "@/components/home/AnimeCard";
+import MyListButton from "@/components/common/MyListButton";
 
 // Dynamic routing page revalidation
 export const revalidate = 3600; // Cache individual details for 1 hour
@@ -134,10 +135,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
                   <span>Start Watching</span>
                 </Link>
               )}
-              <button className="flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium border border-white/5 transition-all text-center">
-                <Bookmark className="w-4 h-4" />
-                <span>Bookmark</span>
-              </button>
+              <MyListButton anime={detail} />
             </div>
           </div>
         </div>

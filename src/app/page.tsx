@@ -1,7 +1,8 @@
 import fallbackManager from "@/providers/fallback";
 import HeroBanner from "@/components/home/HeroBanner";
 import AnimeCarousel from "@/components/home/AnimeCarousel";
-import { Sparkles, Tv, Flame, TrendingUp } from "lucide-react";
+import MyListHomepageSection from "@/components/home/MyListHomepageSection";
+import { Sparkles, Tv, Flame } from "lucide-react";
 
 // Opt-out of static rendering to ensure Jikan API updates are dynamic
 export const revalidate = 900; // Revalidate at most every 15 minutes
@@ -26,6 +27,9 @@ export default async function HomePage() {
 
       {/* Main Catalog Slider Sections */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-16">
+
+        {/* Watchlist Carousel (renders conditionally client-side) */}
+        <MyListHomepageSection />
 
         {/* Ongoing Slides */}
         <section className="animate-fade-in">
