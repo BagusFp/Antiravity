@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Play, Menu, X, Calendar, Compass, User, ListPlus } from "lucide-react";
+import { Search, Play, Menu, X, Calendar, Compass, User, ListPlus, History as HistoryIcon } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -47,6 +47,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Home", href: "/", icon: Compass },
     { name: "My List", href: "/my-list", icon: ListPlus },
+    { name: "History", href: "/history", icon: HistoryIcon },
     { name: "Schedule", href: "/schedule", icon: Calendar },
     { name: "Search", href: "/search", icon: Search },
   ];

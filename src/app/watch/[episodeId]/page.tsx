@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Film, Play, ChevronRight, Info, Compass } from "lucide-react";
 import fallbackManager from "@/providers/fallback";
-import VideoPlayerWrapper from "@/app/watch/[episodeId]/VideoPlayerWrapper";
+import VideoPlayerWrapper from "./VideoPlayerWrapper";
 
 export const revalidate = 600; // Cache stream lists for 10 minutes
 
@@ -130,6 +130,11 @@ export default async function WatchPage({ params }: PageProps) {
               streamSource={streamSource}
               nextEpisodeId={nextEpisodeId}
               errorMsg={errorMsg}
+              animeId={parentDetails.id}
+              animeTitle={parentDetails.title}
+              episodeNumber={currentEpisodeNumber}
+              episodeId={decodedEpisodeId}
+              thumbnail={parentDetails.image}
             />
 
             {/* Active Episode Description Info */}
