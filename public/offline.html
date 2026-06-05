@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - MAG</title>
+  <style>
+    body {
+      background-color: #0B0B0F;
+      color: #F3F4F6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: #9333EA;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+      margin-right: 10px;
+    }
+    .logo-play {
+      width: 0;
+      height: 0;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 14px solid white;
+      margin-left: 4px;
+    }
+    .logo-text {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+    }
+    .logo-accent {
+      color: #9333EA;
+    }
+    h1 {
+      font-size: 22px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    p {
+      color: #9CA3AF;
+      font-size: 14px;
+      max-width: 300px;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+    button {
+      background-color: #9333EA;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(147, 51, 234, 0.3);
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    button:active {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-container">
+    <div class="logo-icon">
+      <div class="logo-play"></div>
+    </div>
+    <span class="logo-text">M<span class="logo-accent">AG</span></span>
+  </div>
+  <h1>You're Offline</h1>
+  <p>Please check your internet connection and try reloading the page.</p>
+  <button onclick="window.location.reload()">Retry Connection</button>
+</body>
+</html>

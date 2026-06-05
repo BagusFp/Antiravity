@@ -135,3 +135,20 @@ body {
   }
 }
 
+/* PWA Standalone optimizations */
+html.pwa-standalone,
+body.pwa-standalone {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.pwa-standalone nav {
+  padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+}
+
+body.pwa-standalone main {
+  padding-top: calc(4.5rem + env(safe-area-inset-top, 0px));
+}
+
+
