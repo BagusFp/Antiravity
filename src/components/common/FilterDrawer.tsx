@@ -1,7 +1,7 @@
 "use client";
 
 import { X, RotateCcw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export interface FilterState {
   genre: string;
@@ -56,15 +56,6 @@ export default function FilterDrawer({
   filters,
   onApplyFilters,
 }: FilterDrawerProps) {
-  const [localFilters, setLocalFilters] = useState<FilterState>(filters);
-
-  // Sync with prop when drawer opens or filters prop changes
-  useEffect(() => {
-    if (isOpen) {
-      setLocalFilters(filters);
-    }
-  }, [isOpen, filters]);
-
   // Prevent body scroll when drawer/modal is open
   useEffect(() => {
     if (isOpen) {
@@ -78,21 +69,21 @@ export default function FilterDrawer({
   }, [isOpen]);
 
   const handleChange = (key: keyof FilterState, value: string) => {
-    setLocalFilters((prev) => ({
-      ...prev,
+    onApplyFilters({
+      ...filters,
       [key]: value,
-    }));
+    });
   };
 
   const handleReset = () => {
-    setLocalFilters(initialFilters);
+    onApplyFilters(initialFilters);
   };
 
   return (
     <>
       {/* Mobile Fullscreen Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-[100] bg-[#0C0C12] flex flex-col sm:hidden overflow-hidden">
+        <div className="fixed inset-0 z-[100] bg-[#0C0C12] flex flex-col sm:hidden overflow-hidden animate-fade-in">
           {/* Header */}
           <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between shrink-0">
             <div>
@@ -115,7 +106,7 @@ export default function FilterDrawer({
               <h3 className="text-xs uppercase font-extrabold tracking-widest text-accent/80">Airing Status</h3>
               <div className="grid grid-cols-2 gap-2">
                 {STATUSES.map((s) => {
-                  const active = localFilters.status === s;
+                  const active = filters.status === s;
                   return (
                     <button
                       key={s}
@@ -138,7 +129,7 @@ export default function FilterDrawer({
               <h3 className="text-xs uppercase font-extrabold tracking-widest text-accent/80">Format Type</h3>
               <div className="grid grid-cols-3 gap-2">
                 {TYPES.map((t) => {
-                  const active = localFilters.type === t;
+                  const active = filters.type === t;
                   return (
                     <button
                       key={t}
@@ -161,7 +152,7 @@ export default function FilterDrawer({
               <h3 className="text-xs uppercase font-extrabold tracking-widest text-accent/80">Filter by Genre</h3>
               <div className="flex flex-wrap gap-2">
                 {GENRES.map((g) => {
-                  const active = localFilters.genre === g;
+                  const active = filters.genre === g;
                   return (
                     <button
                       key={g}
@@ -189,13 +180,10 @@ export default function FilterDrawer({
               Reset Filters
             </button>
             <button
-              onClick={() => {
-                onApplyFilters(localFilters);
-                onClose();
-              }}
+              onClick={onClose}
               className="flex-1 py-3 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/20 transition-all text-center cursor-pointer"
             >
-              Apply Filters
+              Close
             </button>
           </div>
         </div>
@@ -248,7 +236,7 @@ export default function FilterDrawer({
               <h3 className="text-xs uppercase font-extrabold tracking-widest text-accent/80">Airing Status</h3>
               <div className="grid grid-cols-4 gap-2">
                 {STATUSES.map((s) => {
-                  const active = localFilters.status === s;
+                  const active = filters.status === s;
                   return (
                     <button
                       key={s}
@@ -271,7 +259,7 @@ export default function FilterDrawer({
               <h3 className="text-xs uppercase font-extrabold tracking-widest text-accent/80">Format Type</h3>
               <div className="grid grid-cols-5 gap-2">
                 {TYPES.map((t) => {
-                  const active = localFilters.type === t;
+                  const active = filters.type === t;
                   return (
                     <button
                       key={t}
@@ -294,7 +282,7 @@ export default function FilterDrawer({
               <h3 className="text-xs uppercase font-extrabold tracking-widest text-accent/80">Filter by Genre</h3>
               <div className="flex flex-wrap gap-2">
                 {GENRES.map((g) => {
-                  const active = localFilters.genre === g;
+                  const active = filters.genre === g;
                   return (
                     <button
                       key={g}
@@ -316,13 +304,10 @@ export default function FilterDrawer({
           {/* Footer actions */}
           <div className="p-6 border-t border-white/5 bg-[#08080C]/80 backdrop-blur-md flex items-center justify-between gap-4">
             <button
-              onClick={() => {
-                onApplyFilters(localFilters);
-                onClose();
-              }}
+              onClick={onClose}
               className="w-full py-3 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-center cursor-pointer"
             >
-              Apply & View
+              Close
             </button>
           </div>
         </div>
