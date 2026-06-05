@@ -108,12 +108,17 @@ export default function FilterDrawer({
         onClick={onClose}
       />
 
-      {/* Drawer */}
+      {/* Drawer / Bottom Sheet */}
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:max-w-md z-50 bg-[#0C0C12]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl transition-transform duration-300 ease-out flex flex-col ${
-          isOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed z-50 bg-[#0C0C12]/95 backdrop-blur-xl shadow-2xl transition-transform duration-300 ease-out flex flex-col bottom-0 left-0 right-0 top-auto w-full h-[85dvh] max-h-[85dvh] rounded-t-[2rem] border-t border-white/10 sm:top-0 sm:right-0 sm:bottom-0 sm:left-auto sm:h-full sm:max-h-screen sm:w-full sm:max-w-md sm:rounded-t-none sm:border-l sm:border-t-0 ${
+          isOpen ? "translate-y-0 sm:translate-y-0 sm:translate-x-0" : "translate-y-full sm:translate-y-0 sm:translate-x-full"
         }`}
       >
+        {/* Mobile drag handle */}
+        <div className="pt-3 pb-1 flex justify-center sm:hidden shrink-0">
+          <div className="w-12 h-1.5 bg-white/10 rounded-full" />
+        </div>
+
         {/* Header */}
         <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
           <div>
