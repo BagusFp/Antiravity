@@ -55,7 +55,7 @@ export default function Navbar() {
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-[#0B0B0F]/90 backdrop-blur-md border-b border-white/5 py-3"
+          ? "bg-[#0B0B0F]/90 backdrop-blur-sm md:backdrop-blur-md lg:backdrop-blur-xl border-b border-white/5 py-3"
           : "bg-transparent py-5"
       }`}
     >
@@ -64,10 +64,10 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2 group">
-              <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center shadow-lg shadow-accent/20 group-hover:bg-accent-hover transition-colors">
+              <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center shadow-md sm:shadow-lg shadow-accent/20 sm:group-hover:bg-accent-hover transition-colors">
                 <Play className="w-5 h-5 text-white fill-current" />
               </div>
-              <span className="text-xl font-extrabold tracking-wider text-white group-hover:text-accent transition-colors">
+              <span className="text-xl font-extrabold tracking-wider text-white sm:group-hover:text-accent transition-colors">
                 M<span className="text-accent">AG</span>
               </span>
             </Link>
@@ -128,7 +128,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-[#0B0B0F]/98 backdrop-blur-md border-b border-white/5 absolute top-full left-0 w-full animate-fade-in">
+        <div className="md:hidden bg-[#0B0B0F]/98 backdrop-blur-sm border-b border-white/5 absolute top-full left-0 w-full animate-fade-in">
           <div className="px-4 pt-4 pb-6 space-y-4">
             <form onSubmit={handleSearchSubmit} className="relative w-full">
               <input

@@ -33,10 +33,18 @@ body {
 
 /* Glassmorphism utility */
 .glass {
-  background: rgba(19, 19, 26, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(19, 19, 26, 0.75); /* Reduced transparency on mobile */
+  backdrop-filter: blur(6px); /* Reduced blur intensity on mobile */
+  -webkit-backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@media (min-width: 768px) {
+  .glass {
+    background: rgba(19, 19, 26, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
 /* Smooth Premium Scrollbar */

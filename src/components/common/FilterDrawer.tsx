@@ -193,7 +193,7 @@ export default function FilterDrawer({
       <div className="hidden sm:block">
         {/* Backdrop */}
         <div
-          className={`fixed inset-0 z-50 bg-black/70 backdrop-blur-md transition-opacity duration-300 ${
+          className={`fixed inset-0 z-50 bg-black/70 backdrop-blur-sm md:backdrop-blur-md lg:backdrop-blur-xl transition-opacity duration-300 ${
             isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
           }`}
           onClick={onClose}
@@ -201,7 +201,7 @@ export default function FilterDrawer({
 
         {/* Drawer */}
         <div
-          className={`fixed z-50 bg-[#0C0C12]/95 backdrop-blur-xl shadow-2xl transition-transform duration-300 ease-out flex flex-col top-0 right-0 bottom-0 left-auto h-full w-full max-w-md border-l border-white/10 ${
+          className={`fixed z-50 bg-[#0C0C12]/95 backdrop-blur-sm md:backdrop-blur-md lg:backdrop-blur-xl shadow-md sm:shadow-2xl transition-transform duration-300 ease-out flex flex-col top-0 right-0 bottom-0 left-auto h-full w-full max-w-md border-l border-white/10 ${
             isOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
@@ -302,10 +302,10 @@ export default function FilterDrawer({
           </div>
 
           {/* Footer actions */}
-          <div className="p-6 border-t border-white/5 bg-[#08080C]/80 backdrop-blur-md flex items-center justify-between gap-4">
+          <div className="p-6 border-t border-white/5 bg-[#08080C]/80 backdrop-blur-sm md:backdrop-blur-md lg:backdrop-blur-xl flex items-center justify-between gap-4">
             <button
               onClick={onClose}
-              className="w-full py-3 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-center cursor-pointer"
+              className="w-full py-3 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-bold shadow-md sm:shadow-lg shadow-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-center cursor-pointer"
             >
               Close
             </button>
