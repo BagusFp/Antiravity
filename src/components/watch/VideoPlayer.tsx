@@ -98,6 +98,7 @@ export default function VideoPlayer({
   const prevTimeRef = useRef<number>(0);
   const prevPlayingRef = useRef<boolean>(false);
   const isSwitchingSourceRef = useRef<boolean>(false);
+  const prevIsFullscreenRef = useRef<boolean | undefined>(undefined);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -567,30 +568,40 @@ export default function VideoPlayer({
 
   // Handle screen orientation lock when fullscreen is toggled
   useEffect(() => {
+    if (isFullscreen === prevIsFullscreenRef.current) return;
+    const wasFullscreen = prevIsFullscreenRef.current;
+    prevIsFullscreenRef.current = isFullscreen;
+
+    // Avoid running lock/unlock logic on the initial mount when wasFullscreen is undefined
+    if (wasFullscreen === undefined) return;
+
     const lockOrientation = async () => {
       const screenAny = typeof window !== "undefined" && window.screen ? (window.screen as any) : null;
       const orientation = screenAny ? (screenAny.orientation || screenAny.mozOrientation || screenAny.msOrientation) : null;
 
       if (isFullscreen) {
+        console.log("entered fullscreen");
         try {
           if (orientation && typeof orientation.lock === "function") {
             await orientation.lock("landscape");
-            console.log("[VideoPlayer] Orientation locked to landscape");
+            console.log("orientation locked");
             setOrientationLockFailed(false);
           } else {
-            console.log("[VideoPlayer] Screen Orientation API lock not supported on this browser.");
+            console.log("orientation lock unsupported");
             setOrientationLockFailed(true);
           }
         } catch (error) {
           console.warn("[VideoPlayer] Failed to lock screen orientation:", error);
+          console.log("orientation lock unsupported");
           setOrientationLockFailed(true);
         }
       } else {
+        console.log("exited fullscreen");
         setOrientationLockFailed(false);
         try {
           if (orientation && typeof orientation.unlock === "function") {
             orientation.unlock();
-            console.log("[VideoPlayer] Orientation unlocked");
+            console.log("orientation unlocked");
           }
         } catch (error) {
           console.warn("[VideoPlayer] Failed to unlock screen orientation:", error);
