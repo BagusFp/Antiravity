@@ -9,7 +9,10 @@ export default function HistoryPage() {
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [isMounted, setIsMounted] = useState(false);
 
+  const [now, setNow] = useState<number>(0);
+
   const loadItems = () => {
+    setNow(Date.now());
     setItems(historyStorage.getAll());
   };
 
@@ -42,8 +45,9 @@ export default function HistoryPage() {
     }
   };
 
-  const formatRelativeTime = (timestamp: number) => {
-    const diff = Date.now() - timestamp;
+  const formatRelativeTime = (timestamp: number, currentTime: number) => {
+    if (!currentTime) return "";
+    const diff = currentTime - timestamp;
     const mins = Math.floor(diff / 60000);
     const hrs = Math.floor(mins / 60);
     const days = Math.floor(hrs / 24);
@@ -163,7 +167,7 @@ export default function HistoryPage() {
 
                     {/* Timestamp overlay */}
                     <div className="absolute bottom-2 right-2 z-10 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold">
-                      {formatRelativeTime(item.timestamp)}
+                      {formatRelativeTime(item.timestamp, now)}
                     </div>
                   </div>
 
