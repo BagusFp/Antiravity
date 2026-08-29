@@ -80,9 +80,11 @@ export default function VideoPlayer({
     const q = src.quality.toLowerCase();
     const u = src.url.toLowerCase();
     
-    // Completely exclude Pdrain and Acefile
-    if (q.includes("pdrain") || q.includes("pixeldrain") || q.includes("acefile") ||
-        u.includes("pixeldrain.com") || u.includes("pdrain") || u.includes("acefile.co") || u.includes("acefile")) {
+    // Completely exclude Pdrain, Acefile, Odstream, Odcdn, Gofile, Ondesu, Ondesuhd, Ondesuvip, Updesu
+    if (
+      q.includes("pdrain") || q.includes("pixeldrain") || q.includes("acefile") || q.includes("odstream") || q.includes("odcdn") || q.includes("gofile") || q.includes("ondesu") || q.includes("ondesuhd") || q.includes("ondesuvip") || q.includes("updesu") ||
+      u.includes("pixeldrain.com") || u.includes("pdrain") || u.includes("acefile.co") || u.includes("acefile") || u.includes("odstream") || u.includes("odcdn") || u.includes("gofile") || u.includes("ondesu") || u.includes("ondesuhd") || u.includes("ondesuvip") || u.includes("updesu") || u.includes("desustream.net/dstream/ondesu") || u.includes("desustream.net/dstream/lb")
+    ) {
       return false;
     }
     
@@ -138,7 +140,7 @@ export default function VideoPlayer({
         console.log(`  - Server: ${srv.serverName} -> [${srv.sources.map(s => s.qualityLabel).join(", ")}]`);
       });
 
-      // Smart Default Selection with prioritization of direct/HLS sources
+      // Smart Default Selection with prioritization of direct/HLS sources and user-preferred Vidhide mirror
       const serverScore = (srv: GroupedServer) => {
         const name = srv.serverName.toLowerCase();
         
@@ -147,20 +149,20 @@ export default function VideoPlayer({
         
         let score = 50;
         
-        if (name.includes("ondesuhd") || name.includes("ondesu")) {
-          score = 150;
+        if (name.includes("vidhide") || name.includes("vidhidepro") || name.includes("streamhide") || name.includes("vhide")) {
+          score = 135; // High priority for user favorite Vidhide mirror
         } else if (name.includes("default") || name.includes("server")) {
           score = 120;
-        } else if (name.includes("desustream") || name.includes("kuroanime")) {
+        } else if (name.includes("desustream") || name.includes("kuroanime") || name.includes("blogger")) {
           score = 110;
-        } else if (name.includes("gofile") || name.includes("odfiles")) {
-          score = 90;
         } else if (name.includes("mega")) {
-          score = 80;
-        } else if (name.includes("krakenfiles") || name.includes("kfiles")) {
+          score = 95;
+        } else if (name.includes("krakenfiles") || name.includes("kfiles") || name.includes("kraken")) {
+          score = 90;
+        } else if (name.includes("mp4load") || name.includes("mp4upload")) {
+          score = 85;
+        } else if (name.includes("filedon") || name.includes("filemoon") || name.includes("streamwish")) {
           score = 70;
-        } else if (name.includes("vidhide") || name.includes("filedon") || name.includes("filemoon") || name.includes("streamwish")) {
-          score = 60;
         }
         
         if (hasDirect) {

@@ -3,8 +3,10 @@ import Link from "next/link";
 import { Film, Play, ChevronRight, Info, Compass } from "lucide-react";
 import fallbackManager from "@/providers/fallback";
 import VideoPlayerWrapper from "./VideoPlayerWrapper";
+import EpisodePlaylist from "@/components/watch/EpisodePlaylist";
 
-export const revalidate = 600; // Cache stream lists for 10 minutes
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 // Utility to clean up episode titles by removing redundant parent anime title prefixes
 const cleanEpisodeTitle = (epTitle: string, animeTitle: string, epNum: number) => {
@@ -166,48 +168,12 @@ export default async function WatchPage({ params }: PageProps) {
           </div>
 
           {/* Sidebar Playlist Panel (4 Columns) */}
-          <div className="lg:col-span-4 rounded-2xl bg-muted/20 border border-white/5 overflow-hidden flex flex-col max-h-[600px]">
-            <div className="p-4 bg-white/5 border-b border-white/5 flex items-center justify-between shrink-0">
-              <div className="flex items-center space-x-2 text-white">
-                <Film className="w-5 h-5 text-accent" />
-                <h3 className="font-bold text-sm tracking-wide uppercase">
-                  Episode List
-                </h3>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {parentDetails.episodes.length} Airing
-              </span>
-            </div>
-
-            {/* Scrollable List Playlist */}
-            <div className="divide-y divide-white/5 overflow-y-auto pr-1">
-              {parentDetails.episodes.map((ep: any) => {
-                const isActive = ep.number === currentEpisodeNumber;
-                return (
-                  <Link
-                    key={ep.id}
-                    href={`/watch/${encodeURIComponent(ep.id)}`}
-                    className={`flex items-center justify-between px-4 py-3.5 transition-all text-sm group ${
-                      isActive
-                        ? "bg-accent/15 border-l-4 border-accent text-accent font-bold"
-                        : "text-muted-foreground hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    <span className="truncate pr-4">
-                      {cleanEpisodeTitle(ep.title, parentDetails.title, ep.number)}
-                    </span>
-                    <div className="flex items-center shrink-0">
-                      {isActive ? (
-                        <Play className="w-3.5 h-3.5 fill-current text-accent" />
-                      ) : (
-                        <Play className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+          <EpisodePlaylist
+            episodes={parentDetails.episodes}
+            currentEpisodeNumber={currentEpisodeNumber}
+            animeId={parentDetails.id}
+            animeTitle={parentDetails.title}
+          />
         </div>
       </div>
     </div>

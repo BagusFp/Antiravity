@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import AnimeCard from "./AnimeCard";
 import { AnimeSearchResult } from "@/types/anime";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface AnimeCarouselProps {
   title: string;
@@ -13,6 +13,7 @@ interface AnimeCarouselProps {
 }
 
 export default function AnimeCarousel({ title, items, viewMoreHref }: AnimeCarouselProps) {
+  const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -56,12 +57,13 @@ export default function AnimeCarousel({ title, items, viewMoreHref }: AnimeCarou
           {title}
         </h2>
         {viewMoreHref && (
-          <Link
+          <a
             href={viewMoreHref}
+            onClick={() => router.refresh()}
             className="text-xs sm:text-sm font-bold text-accent hover:text-white transition-all px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 hover:bg-accent shadow-lg shadow-accent/5"
           >
             View More
-          </Link>
+          </a>
         )}
       </div>
 

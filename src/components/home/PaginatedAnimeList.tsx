@@ -39,7 +39,13 @@ export default function PaginatedAnimeList({
     
     try {
       console.log(`[PaginatedAnimeList] Requesting page ${pageNumber} from ${apiEndpoint}`);
-      const response = await fetch(`${apiEndpoint}?page=${pageNumber}`);
+      const response = await fetch(`${apiEndpoint}?page=${pageNumber}&_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: {
+          "Pragma": "no-cache",
+          "Cache-Control": "no-cache",
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         

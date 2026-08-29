@@ -76,5 +76,39 @@ export const historyStorage = {
     } catch (error) {
       console.error("Error clearing watch history:", error);
     }
+  },
+
+  // Check if an episode is watched
+  isWatched(episodeId: string, animeId?: string, episodeNumber?: number): boolean {
+    if (typeof window === "undefined") return false;
+    const items = this.getAll();
+    const targetUrl = `/watch/${encodeURIComponent(episodeId)}`;
+    const rawUrl = `/watch/${episodeId}`;
+    
+    return items.some((i) => {
+      if (i.watchUrl === targetUrl || i.watchUrl === rawUrl) return true;
+      if (animeId && episodeNumber !== undefined && i.animeId === animeId && i.episodeNumber === episodeNumber) return true;
+      if (i.watchUrl.includes(encodeURIComponent(episodeId)) || i.watchUrl.includes(episodeId)) return true;
+      return false;
+    });
+  },
+
+  // Get set of all watched URLs or keys for fast client-side lookup
+  getWatchedKeys(): Set<string> {
+    if (typeof window === "undefined") return new Set();
+    const items = this.getAll();
+    const set = new Set<string>();
+    items.forEach((i) => {
+      set.add(i.watchUrl);
+      const decodedUrl = decodeURIComponent(i.watchUrl);
+      set.add(decodedUrl);
+      const epId = i.watchUrl.replace("/watch/", "");
+      set.add(epId);
+      set.add(decodeURIComponent(epId));
+      if (i.animeId && i.episodeNumber) {
+        set.add(`${i.animeId}_ep_${i.episodeNumber}`);
+      }
+    });
+    return set;
   }
 };

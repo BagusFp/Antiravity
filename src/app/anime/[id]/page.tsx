@@ -4,9 +4,11 @@ import { Star, Play, Calendar, Film } from "lucide-react";
 import fallbackManager from "@/providers/fallback";
 import AnimeCard from "@/components/home/AnimeCard";
 import MyListButton from "@/components/common/MyListButton";
+import EpisodeGrid from "@/components/anime/EpisodeGrid";
 
-// Dynamic routing page revalidation
-export const revalidate = 3600; // Cache individual details for 1 hour
+// Dynamic routing: disable cache so latest episodes show up instantly on every visit
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -152,24 +154,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
             </span>
           </div>
 
-          {detail.episodes.length === 0 ? (
-            <div className="p-8 glass rounded-2xl text-center text-muted-foreground">
-              No episodes have been released yet for this show.
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-12 gap-3 max-h-[300px] overflow-y-auto pr-2">
-              {detail.episodes.map((episode: any) => (
-                <Link
-                  key={episode.id}
-                  href={`/watch/${encodeURIComponent(episode.id)}`}
-                  className="flex items-center justify-center h-11 rounded-lg bg-muted/40 text-sm font-semibold border border-white/5 text-white/90 hover:bg-accent hover:border-accent hover:scale-[1.03] transition-all"
-                  title={episode.title || `Episode ${episode.number}`}
-                >
-                  {episode.number}
-                </Link>
-              ))}
-            </div>
-          )}
+          <EpisodeGrid episodes={detail.episodes} animeId={detail.id} />
         </section>
 
         {/* Context Recommendations List */}

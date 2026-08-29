@@ -2,7 +2,8 @@ import { Calendar, Compass } from "lucide-react";
 import fallbackManager from "@/providers/fallback";
 import ScheduleTabs from "./ScheduleTabs";
 
-export const revalidate = 14400; // Cache weekly schedules for 4 hours
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function SchedulePage() {
   const scheduleItems = await fallbackManager.getSchedule();

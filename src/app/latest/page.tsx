@@ -1,5 +1,8 @@
 import PaginatedAnimeList from "@/components/home/PaginatedAnimeList";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Latest Episodes - MAG",
   description: "Get the absolute freshest episode releases and quick anime updates as soon as they air.",

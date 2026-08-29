@@ -5,8 +5,8 @@ import { CacheService } from "@/services/cache";
 import { isPlayableUrl, isValidUrl, normalizeMegaUrl } from "@/services/anime-api";
 import * as cheerio from "cheerio";
 
-const KURAMANIME_BASE = "https://v18.kuramanime.ing";
-const CACHE_TTL_HOUR = 60 * 60 * 1000;
+const KURAMANIME_BASE = "https://v8.kuramanime.ing";
+const CACHE_TTL_HOUR = 2 * 60 * 1000; // 2 minutes short cache for live updates
 
 export class KuramanimeProvider implements IAnimeProvider {
   name = "kuramanime";
@@ -168,8 +168,8 @@ export class KuramanimeProvider implements IAnimeProvider {
           // Strict Chrome browser headers to bypass basic security/bot-detection
           const baseHeaders = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            "Referer": "https://v18.kuramanime.ing/",
-            "Origin": "https://v18.kuramanime.ing",
+            "Referer": `${KURAMANIME_BASE}/`,
+            "Origin": KURAMANIME_BASE,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
             "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
           };

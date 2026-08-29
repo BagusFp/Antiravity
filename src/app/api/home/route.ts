@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import fallbackManager from "@/providers/fallback";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const data = await fallbackManager.getHomeData();
     
-    // Add Vercel Edge caching headers: 15 minutes cache, 10 minutes stale-while-revalidate
     return NextResponse.json(data, {
       headers: {
-        "Cache-Control": "public, s-maxage=900, stale-while-revalidate=600",
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
         "Access-Control-Allow-Origin": "*",
       },
     });

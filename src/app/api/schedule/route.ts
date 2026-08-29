@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import fallbackManager from "@/providers/fallback";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const schedule = await fallbackManager.getSchedule();
     
     return NextResponse.json(schedule, {
       headers: {
-        "Cache-Control": "public, s-maxage=14400, stale-while-revalidate=3600", // Cache schedules for 4 hours
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
         "Access-Control-Allow-Origin": "*",
       },
     });

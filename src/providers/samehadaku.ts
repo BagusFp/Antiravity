@@ -6,8 +6,8 @@ import { cleanId } from "@/utils/formatters";
 import * as cheerio from "cheerio";
 
 // Primary and mirror domains for Samehadaku
-const SAMEHADAKU_BASE = "https://samehadaku.email";
-const CACHE_TTL_HOUR = 60 * 60 * 1000;
+const SAMEHADAKU_BASE = "https://samehadaku.care";
+const CACHE_TTL_HOUR = 2 * 60 * 1000; // 2 minutes short cache for live updates
 
 export class SamehadakuProvider implements IAnimeProvider {
   name = "samehadaku";

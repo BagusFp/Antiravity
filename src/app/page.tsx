@@ -4,8 +4,9 @@ import AnimeCarousel from "@/components/home/AnimeCarousel";
 import MyListHomepageSection from "@/components/home/MyListHomepageSection";
 import { Sparkles, Tv, Flame } from "lucide-react";
 
-// Opt-out of static rendering to ensure Jikan API updates are dynamic
-export const revalidate = 900; // Revalidate at most every 15 minutes
+// Opt-out of static rendering to ensure home data is always live and fresh
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function HomePage() {
   const homeData = await fallbackManager.getHomeData();

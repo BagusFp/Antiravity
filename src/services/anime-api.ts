@@ -1,8 +1,9 @@
 import { resilientFetch } from "./fetcher";
 import { AnimeSearchResult, AnimeDetail, StreamSource, VideoSource, HomeData, PaginatedAnimeResponse } from "@/types/anime";
+import * as cheerio from "cheerio";
 
 // We retrieve NEXT_PUBLIC_ANIME_API from process.env, defaulting to https://www.sankavollerei.com/anime
-const API_BASE = process.env.NEXT_PUBLIC_ANIME_API || "https://www.sankavollerei.com/anime";
+const API_BASE = process.env.NEXT_PUBLIC_ANIME_API || "https://www.sankavollerei.web.id/anime";
 
 export function normalizeMegaUrl(url: string): string {
   if (!url.includes("mega.nz")) return url;
@@ -17,7 +18,21 @@ export function normalizeMegaUrl(url: string): string {
 export function isPlayableUrl(url: string): boolean {
   if (!url) return false;
   const u = url.toLowerCase();
-  if (u.includes("pixeldrain.com") || u.includes("pdrain") || u.includes("acefile.co") || u.includes("acefile")) {
+  if (
+    u.includes("pixeldrain.com") ||
+    u.includes("pdrain") ||
+    u.includes("acefile.co") ||
+    u.includes("acefile") ||
+    u.includes("odstream") ||
+    u.includes("odcdn") ||
+    u.includes("gofile") ||
+    u.includes("ondesu") ||
+    u.includes("ondesuhd") ||
+    u.includes("ondesuvip") ||
+    u.includes("updesu") ||
+    u.includes("desustream.net/dstream/ondesu") ||
+    u.includes("desustream.net/dstream/lb")
+  ) {
     return false;
   }
   if (u.includes("mega.nz/folder") || u.includes("mega.nz/#f!")) {
@@ -51,21 +66,26 @@ function convertToStreamUrl(redirectUrl: string): { url: string; isEmbed: boolea
       isEmbed: true,
     };
   } else if (redirectUrl.includes("krakenfiles.com")) {
-    const match = redirectUrl.match(/krakenfiles\.com\/view\/([a-zA-Z0-9_-]+)/);
+    const match = redirectUrl.match(/krakenfiles\.com\/(?:view|embed-video)\/([a-zA-Z0-9_-]+)/);
     if (match) {
       return {
         url: `https://krakenfiles.com/embed-video/${match[1]}`,
         isEmbed: true,
       };
     }
-  } else if (redirectUrl.includes("gofile.io")) {
-    const match = redirectUrl.match(/gofile\.io\/d\/([a-zA-Z0-9_-]+)/);
-    if (match) {
-      return {
-        url: redirectUrl,
-        isEmbed: true,
-      };
-    }
+  } else if (
+    redirectUrl.includes("vidhide") ||
+    redirectUrl.includes("streamhide") ||
+    redirectUrl.includes("vhide") ||
+    redirectUrl.includes("vidhidy")
+  ) {
+    const match = redirectUrl.match(/(?:vidhide|streamhide|vhide|vidhidy)[a-z0-9.-]*\/(?:v|e|embed)\/([a-zA-Z0-9_-]+)/i);
+    const fileId = match ? match[1] : null;
+    const finalUrl = fileId ? `https://vidhidepro.com/e/${fileId}` : redirectUrl;
+    return {
+      url: finalUrl,
+      isEmbed: true,
+    };
   }
   return null;
 }
@@ -386,13 +406,147 @@ export class AnimeApiService {
   /**
    * Get episode streaming sources by ID and resolve mirror servers in parallel
    */
+  /**
+   * Direct scraper fallback for Otakudesu.blog when Sanka API is restricted or blocked
+   */
+  static async scrapeDirectOtakudesuEpisode(episodeId: string): Promise<StreamSource> {
+    console.log(`[AnimeApiService] Scraping Otakudesu.blog directly for episode: ${episodeId}`);
+    const epUrl = `https://otakudesu.blog/episode/${episodeId}/`;
+    
+    try {
+      const html = await resilientFetch<string>(epUrl, {
+        timeout: 8000,
+        headers: {
+          "Referer": "https://otakudesu.blog/"
+        }
+      });
+
+      if (!html || typeof html !== "string" || !html.includes("otakudesu")) {
+        throw new Error("Invalid HTML response from direct Otakudesu scraper");
+      }
+
+      const $ = cheerio.load(html);
+      const sources: VideoSource[] = [];
+
+      // 1. Primary Blogger / Embed Stream
+      const iframeSrc = $(".responsive-embed-stream iframe, .embed-holder iframe, iframe").first().attr("src");
+      if (iframeSrc && iframeSrc.includes("http") && isPlayableUrl(iframeSrc)) {
+        sources.push({
+          quality: "720p - Blogger HD",
+          url: iframeSrc,
+          isM3U8: false
+        });
+      }
+
+      // 2. Parallel resolution of download mirrors (Mega, KrakenFiles, etc.)
+      const downloadPromises: Promise<any>[] = [];
+      $(".download ul li").each((_, li) => {
+        const qualityText = $(li).find("strong").text().trim();
+        const qualityMatch = qualityText.match(/(\d+p)/i);
+        const quality = qualityMatch ? qualityMatch[1] : "HD";
+
+        $(li).find("a").each((_, a) => {
+          const mirrorTitle = $(a).text().trim().toLowerCase();
+          const linkUrl = $(a).attr("href");
+
+          if (
+            mirrorTitle.includes("pdrain") ||
+            mirrorTitle.includes("pixeldrain") ||
+            mirrorTitle.includes("acefile") ||
+            mirrorTitle.includes("odstream") ||
+            mirrorTitle.includes("odcdn") ||
+            mirrorTitle.includes("gofile") ||
+            mirrorTitle.includes("ondesu") ||
+            mirrorTitle.includes("ondesuhd") ||
+            mirrorTitle.includes("ondesuvip") ||
+            mirrorTitle.includes("updesu")
+          ) {
+            return;
+          }
+
+          if (linkUrl && linkUrl.includes("link.desustream.com")) {
+            const promise = (async () => {
+              try {
+                const redirectRes = await fetch(linkUrl, { redirect: "manual" });
+                const loc = redirectRes.headers.get("location");
+                if (loc && isPlayableUrl(loc) && isValidUrl(loc)) {
+                  let finalUrl = loc;
+                  if (finalUrl.includes("mega.nz")) {
+                    finalUrl = normalizeMegaUrl(finalUrl);
+                  } else if (finalUrl.includes("krakenfiles.com")) {
+                    const match = finalUrl.match(/krakenfiles\.com\/(?:view|embed-video)\/([a-zA-Z0-9_-]+)/);
+                    if (match) {
+                      finalUrl = `https://krakenfiles.com/embed-video/${match[1]}`;
+                    }
+                  } else if (
+                    finalUrl.includes("vidhide") ||
+                    finalUrl.includes("streamhide") ||
+                    finalUrl.includes("vhide") ||
+                    finalUrl.includes("vidhidy")
+                  ) {
+                    const match = finalUrl.match(/(?:vidhide|streamhide|vhide|vidhidy)[a-z0-9.-]*\/(?:v|e|embed)\/([a-zA-Z0-9_-]+)/i);
+                    if (match) {
+                      finalUrl = `https://vidhidepro.com/e/${match[1]}`;
+                    }
+                  }
+
+                  sources.push({
+                    quality: `${quality} - ${$(a).text().trim()}`,
+                    url: finalUrl,
+                    isM3U8: false
+                  });
+                }
+              } catch (e: any) {
+                // ignore individual mirror resolve errors
+              }
+            })();
+            downloadPromises.push(promise);
+          }
+        });
+      });
+
+      await Promise.all(downloadPromises);
+
+      if (sources.length === 0) {
+        throw new Error("Direct Otakudesu scraping found no active playable streams");
+      }
+
+      const parentAnimeId = episodeId.replace(/-episode-\d+.*$/i, "").replace(/-ep-\d+.*$/i, "");
+
+      return {
+        animeId: parentAnimeId || episodeId,
+        sources,
+        subtitles: [
+          {
+            url: "https://raw.githubusercontent.com/andreyvit/subtitle-tools/master/sample.vtt",
+            lang: "id",
+            label: "Bahasa Indonesia",
+            default: true,
+          }
+        ]
+      };
+    } catch (err: any) {
+      console.warn(`[AnimeApiService] Direct Otakudesu web scraper failed for ${episodeId}:`, err.message);
+      throw err;
+    }
+  }
+
+  /**
+   * Get episode streaming sources by ID and resolve mirror servers in parallel
+   */
   static async getEpisodeStream(prefixedId: string): Promise<StreamSource> {
-    const episodeId = prefixedId.includes(":") ? prefixedId.split(":")[1] : prefixedId;
+    const rawId = prefixedId.includes(":") ? prefixedId.split(":").slice(-1)[0] : prefixedId;
+    const episodeId = decodeURIComponent(rawId);
     const url = `${API_BASE}/episode/${episodeId}`;
     console.log(`[AnimeApiService] Fetching episode from: ${url}`);
     
     try {
       const res = await resilientFetch<any>(url);
+
+      if (!res || res.status === "Forbidden" || res.status === "403" || !res.data) {
+        console.warn(`[AnimeApiService] Sanka API episode response invalid or restricted for ${episodeId}. Triggering direct web scraper...`);
+        return await AnimeApiService.scrapeDirectOtakudesuEpisode(episodeId);
+      }
 
       if (res && res.data) {
         const d = res.data;
@@ -412,6 +566,18 @@ export class AnimeApiService {
             const qualityName = q.title || "HD";
             if (Array.isArray(q.serverList)) {
               for (const server of q.serverList) {
+                const sTitle = (server.title || "").toLowerCase();
+                if (
+                  sTitle.includes("odstream") ||
+                  sTitle.includes("odcdn") ||
+                  sTitle.includes("gofile") ||
+                  sTitle.includes("ondesu") ||
+                  sTitle.includes("ondesuhd") ||
+                  sTitle.includes("ondesuvip") ||
+                  sTitle.includes("updesu")
+                ) {
+                  continue;
+                }
                 if (server.serverId) {
                   const promise = (async () => {
                     try {
@@ -486,7 +652,18 @@ export class AnimeApiService {
                 if (link.url) {
                   // Skip unwanted providers early (before fetching)
                   const lowerTitle = (link.title || "").toLowerCase();
-                  if (lowerTitle.includes("pdrain") || lowerTitle.includes("pixeldrain") || lowerTitle.includes("acefile")) {
+                  if (
+                    lowerTitle.includes("pdrain") ||
+                    lowerTitle.includes("pixeldrain") ||
+                    lowerTitle.includes("acefile") ||
+                    lowerTitle.includes("odstream") ||
+                    lowerTitle.includes("odcdn") ||
+                    lowerTitle.includes("gofile") ||
+                    lowerTitle.includes("ondesu") ||
+                    lowerTitle.includes("ondesuhd") ||
+                    lowerTitle.includes("ondesuvip") ||
+                    lowerTitle.includes("updesu")
+                  ) {
                     continue;
                   }
 
@@ -538,7 +715,8 @@ export class AnimeApiService {
         }
 
         if (sources.length === 0) {
-          throw new Error("No active playable streams resolved for this episode.");
+          console.warn(`[AnimeApiService] Sanka API returned 0 playable sources for ${episodeId}. Triggering direct scraper...`);
+          return await AnimeApiService.scrapeDirectOtakudesuEpisode(episodeId);
         }
 
         // Subtitles setup (default Indonesian subtitle sample)
@@ -557,10 +735,10 @@ export class AnimeApiService {
           subtitles,
         };
       }
-      throw new Error("Invalid episode stream response payload from Sanka API");
+      return await AnimeApiService.scrapeDirectOtakudesuEpisode(episodeId);
     } catch (error: any) {
-      console.error(`[AnimeApiService] Error getting stream:`, error);
-      throw new Error(`[AnimeApiService] Failed to extract stream links for episode "${episodeId}": ${error.message}`);
+      console.warn(`[AnimeApiService] Sanka API failed for ${episodeId}: ${error.message}. Attempting direct scraper...`);
+      return await AnimeApiService.scrapeDirectOtakudesuEpisode(episodeId);
     }
   }
 }

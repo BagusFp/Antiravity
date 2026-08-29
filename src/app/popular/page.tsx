@@ -1,5 +1,8 @@
 import PaginatedAnimeList from "@/components/home/PaginatedAnimeList";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Popular Completed Anime - MAG",
   description: "Explore the most popular finished series and community favorites on MAG with full episode archives.",

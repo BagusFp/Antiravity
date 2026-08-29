@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import fallbackManager from "@/providers/fallback";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ episodeId: string }> }
@@ -17,7 +20,7 @@ export async function GET(
 
     return NextResponse.json(sources, {
       headers: {
-        "Cache-Control": "public, s-maxage=7200, stale-while-revalidate=3600", // Cache watch sources for 2 hours
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
         "Access-Control-Allow-Origin": "*",
       },
     });

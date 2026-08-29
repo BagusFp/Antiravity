@@ -1,5 +1,7 @@
 import { AnimeApiService } from "@/services/anime-api";
 import { AnimeSearchResult, AnimeDetail, StreamSource, ScheduleItem, HomeData } from "@/types/anime";
+import { SamehadakuProvider } from "./samehadaku";
+import { KuramanimeProvider } from "./kuramanime";
 
 class ProviderManager {
   /**
@@ -49,21 +51,61 @@ class ProviderManager {
 
   /**
    * Stream Sources:
-   * Direct extraction from Sanka Anime API backend
+   * Multi-provider extraction: Sanka -> Samehadaku -> Kuramanime -> Resilient Stub Container
    */
   async getStreamSources(episodeId: string): Promise<StreamSource> {
+    const rawId = episodeId.includes(":") ? episodeId.split(":").slice(-1)[0] : episodeId;
+    const cleanEpId = decodeURIComponent(rawId);
+
+    // 1. Primary: Sanka Anime API
     try {
-      console.log(`[Fallback Manager] Loading episode streams for "${episodeId}" - Primary: Sanka Anime API`);
-      const stream = await AnimeApiService.getEpisodeStream(episodeId);
-      
+      console.log(`[Fallback Manager] Loading episode streams for "${cleanEpId}" - Primary: Sanka Anime API`);
+      const stream = await AnimeApiService.getEpisodeStream(cleanEpId);
       if (stream && stream.sources && stream.sources.length > 0) {
         return stream;
       }
-      throw new Error("No active real streams extracted");
-    } catch (error) {
-      console.error(`[Fallback Manager] Sanka Anime API stream loading failed for ${episodeId}:`, error);
-      throw error;
+    } catch (error: any) {
+      console.warn(`[Fallback Manager] Sanka Anime API stream loading failed for ${cleanEpId}:`, error.message);
     }
+
+    // 2. Secondary Fallback: Samehadaku Provider
+    try {
+      console.log(`[Fallback Manager] Trying Samehadaku fallback provider for stream: ${cleanEpId}`);
+      const samehadaku = new SamehadakuProvider();
+      const stream = await samehadaku.getStreamSources(cleanEpId);
+      if (stream && stream.sources && stream.sources.length > 0) {
+        return stream;
+      }
+    } catch (err: any) {
+      console.warn(`[Fallback Manager] Samehadaku stream fallback failed for ${cleanEpId}:`, err.message);
+    }
+
+    // 3. Tertiary Fallback: Kuramanime Provider
+    try {
+      console.log(`[Fallback Manager] Trying Kuramanime fallback provider for stream: ${cleanEpId}`);
+      const kuramanime = new KuramanimeProvider();
+      const stream = await kuramanime.getStreamSources(cleanEpId);
+      if (stream && stream.sources && stream.sources.length > 0) {
+        return stream;
+      }
+    } catch (err: any) {
+      console.warn(`[Fallback Manager] Kuramanime stream fallback failed for ${cleanEpId}:`, err.message);
+    }
+
+    // 4. Return clean empty stream container to allow VideoPlayer error UI to display retry option instead of crashing 500
+    const parentAnimeId = cleanEpId.replace(/-episode-\d+.*$/i, "").replace(/-ep-\d+.*$/i, "");
+    return {
+      animeId: parentAnimeId || cleanEpId,
+      sources: [],
+      subtitles: [
+        {
+          url: "https://raw.githubusercontent.com/andreyvit/subtitle-tools/master/sample.vtt",
+          lang: "id",
+          label: "Bahasa Indonesia",
+          default: true,
+        }
+      ]
+    };
   }
 
   /**
