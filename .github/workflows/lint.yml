@@ -5,15 +5,23 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  repository_dispatch:
+    types: [ vercel.deployment.ready ]
 
 jobs:
   lint:
     name: Lint Code Base
     runs-on: ubuntu-latest
 
+    permissions:
+      statuses: write
+      contents: read
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,4 +39,4 @@ jobs:
         uses: 'vercel/repository-dispatch/actions/status@v1'
         if: always()
         with:
-          name: Vercel - antiravity: lint
+          name: 'Vercel - antiravity: lint'
