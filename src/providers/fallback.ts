@@ -2,25 +2,40 @@ import { AnimeApiService } from "@/services/anime-api";
 import { AnimeSearchResult, AnimeDetail, StreamSource, ScheduleItem, HomeData } from "@/types/anime";
 import { SamehadakuProvider } from "./samehadaku";
 import { KuramanimeProvider } from "./kuramanime";
+import { JikanProvider } from "./jikan";
+
+const jikanProvider = new JikanProvider();
 
 class ProviderManager {
   /**
    * Home Data Fetcher:
-   * Uses Sanka Anime API home data as primary source.
+   * Uses Sanka Anime API home data as primary source, with Jikan API fallback.
    */
   async getHomeData(): Promise<HomeData> {
     try {
       console.log("[Fallback Manager] Fetching Home Data - Primary: Sanka Anime API");
-      return await AnimeApiService.getHomeData();
+      const data = await AnimeApiService.getHomeData();
+      if (data && data.ongoing && data.ongoing.length > 0) {
+        return data;
+      }
+      throw new Error("Empty data returned from Sanka API");
     } catch (error) {
-      console.error("[Fallback Manager] Sanka Anime API home failed. Returning premium fallbacks.", error);
+      console.warn("[Fallback Manager] Sanka Anime API home failed. Falling back to Jikan API...", error);
+      try {
+        const jikanData = await jikanProvider.getHomeData();
+        if (jikanData && jikanData.ongoing && jikanData.ongoing.length > 0) {
+          return jikanData;
+        }
+      } catch (jikanErr) {
+        console.warn("[Fallback Manager] Jikan API home failed:", jikanErr);
+      }
       return this.getMockHomeData();
     }
   }
 
   /**
    * Search:
-   * Direct search to Sanka Anime API
+   * Direct search to Sanka Anime API with Jikan API fallback
    */
   async search(query: string): Promise<AnimeSearchResult[]> {
     try {
@@ -30,22 +45,33 @@ class ProviderManager {
       
       throw new Error("No results returned from Sanka Anime API search");
     } catch (error) {
-      console.warn(`[Fallback Manager] Search failed. Returning empty list:`, error);
-      return [];
+      console.warn(`[Fallback Manager] Sanka search failed. Falling back to Jikan search for "${query}":`, error);
+      try {
+        return await jikanProvider.search(query);
+      } catch (jikanErr) {
+        console.warn(`[Fallback Manager] Jikan search also failed:`, jikanErr);
+        return [];
+      }
     }
   }
 
   /**
    * Details:
-   * Resolves detail via Sanka Anime API
+   * Resolves detail via Sanka Anime API with Jikan API fallback
    */
   async getAnimeDetail(id: string): Promise<AnimeDetail> {
     try {
       console.log(`[Fallback Manager] Fetching Details for "${id}" - Primary: Sanka Anime API`);
       return await AnimeApiService.getAnimeDetail(id);
     } catch (error) {
-      console.error(`[Fallback Manager] Details failed for "${id}".`, error);
-      throw error;
+      console.warn(`[Fallback Manager] Sanka details failed for "${id}". Attempting Jikan fallback...`, error);
+      const cleanId = id.includes(":") ? id.split(":").slice(-1)[0] : id;
+      try {
+        return await jikanProvider.getAnimeDetail(cleanId);
+      } catch (jikanErr) {
+        console.error(`[Fallback Manager] Details failed on both Sanka and Jikan:`, jikanErr);
+        throw error;
+      }
     }
   }
 
@@ -170,9 +196,17 @@ class ProviderManager {
           };
         });
       }
-      return this.getMockSchedule();
+      throw new Error("No ongoing anime returned from Sanka API");
     } catch (error) {
-      console.error("[Fallback Manager] Schedule failed. Returning mock list.");
+      console.warn("[Fallback Manager] Schedule failed from Sanka API. Falling back to Jikan schedule...", error);
+      try {
+        const jikanSched = await jikanProvider.getSchedule();
+        if (jikanSched && jikanSched.length > 0) {
+          return jikanSched;
+        }
+      } catch (jikanErr) {
+        console.warn("[Fallback Manager] Jikan schedule also failed:", jikanErr);
+      }
       return this.getMockSchedule();
     }
   }
