@@ -10,6 +10,7 @@ import { getProxiedImageUrl } from "@/utils/formatters";
 // Dynamic routing: disable cache so latest episodes show up instantly on every visit
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+export const maxDuration = 60;
 
 interface PageProps {
   params: Promise<{ id: string }>;

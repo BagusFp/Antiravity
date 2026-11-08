@@ -8,6 +8,8 @@ import { getProxiedImageUrl } from "@/utils/formatters";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+// Stream resolution fans out to many upstream requests, slower via gateway
+export const maxDuration = 60;
 
 // Utility to clean up episode titles by removing redundant parent anime title prefixes
 const cleanEpisodeTitle = (epTitle: string, animeTitle: string, epNum: number) => {
