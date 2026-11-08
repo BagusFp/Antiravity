@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Compass, Inbox, History as HistoryIcon, Trash2, X, Play } from "lucide-react";
 import { historyStorage, HistoryItem } from "@/utils/history";
+import { getProxiedImageUrl } from "@/utils/formatters";
 
 export default function HistoryPage() {
   const [items, setItems] = useState<HistoryItem[]>([]);
@@ -138,7 +139,7 @@ export default function HistoryPage() {
                     {/* Cover image */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={item.thumbnail || "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&q=80"}
+                      src={getProxiedImageUrl(item.thumbnail)}
                       alt={item.animeTitle}
                       loading="lazy"
                       className="w-full h-full object-cover"
