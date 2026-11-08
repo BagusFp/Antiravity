@@ -709,7 +709,6 @@ export default function VideoPlayer({
           title="Video Playback Embed"
         />
       ) : activeSource ? (
-        /* eslint-disable-next-line jsx-a11y/media-has-caption */
         <video
           ref={videoRef}
           onTimeUpdate={handleTimeUpdate}

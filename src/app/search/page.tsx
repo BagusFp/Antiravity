@@ -133,7 +133,6 @@ function SearchContent() {
     fetchedPages.current.clear();
     setItems([]);
     fetchPage(1, initialQuery, filters, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery, filters]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -169,7 +168,6 @@ function SearchContent() {
         observer.unobserve(currentTarget);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, hasMore, isLoading, page, query, filters]);
 
   // Keep client-side filter mapping for instantaneous UI updates & resilience
@@ -191,7 +189,6 @@ function SearchContent() {
       setPage(nextPage);
       fetchPage(nextPage, query, filters);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredItems.length, hasMore, isLoading, activeFiltersCount, page, query, filters]);
 
   return (

@@ -94,7 +94,6 @@ export default function PaginatedAnimeList({
   // Fetch initial page
   useEffect(() => {
     fetchPage(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Infinite scroll logic using IntersectionObserver
@@ -121,7 +120,6 @@ export default function PaginatedAnimeList({
         observer.unobserve(currentTarget);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, hasMore, isLoading, page]);
 
   // Monitor scroll for back-to-top button
