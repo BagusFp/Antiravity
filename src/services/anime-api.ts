@@ -267,7 +267,7 @@ export class AnimeApiService {
     try {
       const url = `${API_BASE}/search/${encodeURIComponent(query)}`;
       console.log(`[AnimeApiService] Searching anime for "${query}" from: ${url}`);
-      const res = await resilientFetch<any>(url);
+      const res = await resilientFetch<any>(url, { timeout: 3500, retries: 1 });
 
       if (res && res.data && res.data.animeList) {
         return res.data.animeList
@@ -415,7 +415,8 @@ export class AnimeApiService {
     
     try {
       const html = await resilientFetch<string>(epUrl, {
-        timeout: 8000,
+        timeout: 4000,
+        retries: 1,
         headers: {
           "Referer": "https://otakudesu.blog/"
         }

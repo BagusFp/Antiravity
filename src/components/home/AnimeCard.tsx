@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Star, Play, Disc, Loader2 } from "lucide-react";
 import { AnimeSearchResult } from "@/types/anime";
+import { getProxiedImageUrl } from "@/utils/formatters";
 
 interface AnimeCardProps {
   anime: AnimeSearchResult;
@@ -37,10 +38,10 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
         {/* Anime Cover */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={image || "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&q=80"}
+          src={getProxiedImageUrl(image)}
           alt={title}
           loading="lazy"
-          style={{ viewTransitionName: `anime-card-${id}` }}
+          style={{ viewTransitionName: `anime-card-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}` }}
           className={`w-full h-full object-cover sm:transition-transform sm:duration-500 ${
             isClicked ? "scale-100 sm:scale-102 blur-[1px]" : "sm:group-hover:scale-105"
           }`}

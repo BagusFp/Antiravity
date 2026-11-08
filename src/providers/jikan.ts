@@ -17,11 +17,11 @@ export class JikanProvider implements IAnimeProvider {
     return CacheService.getOrSet(
       cacheKey,
       async () => {
-        // Fetch trending (airing top), popular (all-time top), latest/ongoing (seasonal now)
+        // Fetch trending (airing top), popular (all-time top), latest/ongoing (seasonal now) with fast timeout
         const [trendingRes, popularRes, seasonalRes] = await Promise.all([
-          resilientFetch<any>(`${BASE_URL}/top/anime?filter=airing&limit=12`),
-          resilientFetch<any>(`${BASE_URL}/top/anime?limit=12`),
-          resilientFetch<any>(`${BASE_URL}/seasons/now?limit=12`),
+          resilientFetch<any>(`${BASE_URL}/top/anime?filter=airing&limit=12`, { timeout: 2500, retries: 1 }),
+          resilientFetch<any>(`${BASE_URL}/top/anime?limit=12`, { timeout: 2500, retries: 1 }),
+          resilientFetch<any>(`${BASE_URL}/seasons/now?limit=12`, { timeout: 2500, retries: 1 }),
         ]);
 
         const mapSearchResult = (item: any): AnimeSearchResult => ({
@@ -53,7 +53,8 @@ export class JikanProvider implements IAnimeProvider {
       cacheKey,
       async () => {
         const response = await resilientFetch<any>(
-          `${BASE_URL}/anime?q=${encodeURIComponent(query)}&limit=24`
+          `${BASE_URL}/anime?q=${encodeURIComponent(query)}&limit=24`,
+          { timeout: 2500, retries: 1 }
         );
 
         return response?.data?.map((item: any) => ({
@@ -77,7 +78,7 @@ export class JikanProvider implements IAnimeProvider {
     return CacheService.getOrSet(
       cacheKey,
       async () => {
-        const response = await resilientFetch<any>(`${BASE_URL}/anime/${id}/full`);
+        const response = await resilientFetch<any>(`${BASE_URL}/anime/${id}/full`, { timeout: 2500, retries: 1 });
         const item = response?.data;
 
         if (!item) {
@@ -119,7 +120,7 @@ export class JikanProvider implements IAnimeProvider {
     return CacheService.getOrSet(
       cacheKey,
       async () => {
-        const response = await resilientFetch<any>(`${BASE_URL}/schedules?limit=50`);
+        const response = await resilientFetch<any>(`${BASE_URL}/schedules?limit=50`, { timeout: 2500, retries: 1 });
         
         return response?.data?.map((item: any) => {
           // Normalize day of week
@@ -145,7 +146,7 @@ export class JikanProvider implements IAnimeProvider {
     return CacheService.getOrSet(
       cacheKey,
       async () => {
-        const response = await resilientFetch<any>(`${BASE_URL}/anime/${id}/recommendations`);
+        const response = await resilientFetch<any>(`${BASE_URL}/anime/${id}/recommendations`, { timeout: 2500, retries: 1 });
         
         return response?.data?.slice(0, 10).map((rec: any) => {
           const item = rec.entry;

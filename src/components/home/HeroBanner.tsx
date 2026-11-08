@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Play, Info, Calendar, Star } from "lucide-react";
 import { AnimeSearchResult } from "@/types/anime";
+import { getProxiedImageUrl } from "@/utils/formatters";
 
 interface HeroBannerProps {
   featured: AnimeSearchResult;
@@ -15,7 +16,7 @@ export default function HeroBanner({ featured }: HeroBannerProps) {
       <div className="absolute inset-0 z-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=1920&q=80"
+          src={getProxiedImageUrl(image) || "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=1920&q=80"}
           alt={title}
           className="w-full h-full object-cover object-center transform scale-100 animate-[pulse_10s_infinite_alternate]"
         />
@@ -64,11 +65,11 @@ export default function HeroBanner({ featured }: HeroBannerProps) {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
           {/* Watch Direct Button */}
           <Link
-            href={`/watch/${encodeURIComponent(`${id}-episode-1`)}`}
+            href={`/anime/${encodeURIComponent(id)}`}
             className="flex items-center justify-center space-x-2 px-6 py-3 rounded-full bg-accent text-white font-semibold shadow-lg shadow-accent/20 hover:bg-accent-hover hover:scale-[1.02] sm:hover:scale-105 active:scale-95 transition-all duration-200 text-center"
           >
             <Play className="w-5 h-5 fill-current" />
-            <span>Watch Episode 1</span>
+            <span>Nonton Sekarang</span>
           </Link>
 
           {/* Info Details Button */}

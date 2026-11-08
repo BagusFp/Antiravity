@@ -42,3 +42,17 @@ export function formatRating(rating?: string): string {
 export function cleanId(id: string | number): string {
   return String(id).trim().toLowerCase();
 }
+
+/**
+ * Returns a proxied URL for anime posters to bypass ISP blocking (Internet Positif)
+ * and prevent broken images on client browsers.
+ */
+export function getProxiedImageUrl(url?: string): string {
+  if (!url) {
+    return "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&q=80";
+  }
+  if (url.includes("otakudesu") || url.includes("samehadaku") || url.includes("kuramanime")) {
+    return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+  }
+  return url;
+}

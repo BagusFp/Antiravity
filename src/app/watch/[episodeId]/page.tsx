@@ -4,6 +4,7 @@ import { Film, Play, ChevronRight, Info, Compass } from "lucide-react";
 import fallbackManager from "@/providers/fallback";
 import VideoPlayerWrapper from "./VideoPlayerWrapper";
 import EpisodePlaylist from "@/components/watch/EpisodePlaylist";
+import { getProxiedImageUrl } from "@/utils/formatters";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -71,6 +72,9 @@ export default async function WatchPage({ params }: PageProps) {
       if (streamSource && streamSource.animeId) {
         parentId = streamSource.animeId;
       }
+      if (!streamSource || !streamSource.sources || streamSource.sources.length === 0) {
+        errorMsg = "Sumber video streaming untuk episode ini belum tersedia atau sedang dalam pemeliharaan server.";
+      }
     } catch (err: any) {
       console.error("Failed loading stream sources on watch page:", err);
       errorMsg = err.message || "Failed to extract active stream from all providers.";
@@ -136,7 +140,7 @@ export default async function WatchPage({ params }: PageProps) {
               animeTitle={parentDetails.title}
               episodeNumber={currentEpisodeNumber}
               episodeId={decodedEpisodeId}
-              thumbnail={parentDetails.image}
+              thumbnail={getProxiedImageUrl(parentDetails.image)}
             />
 
             {/* Active Episode Description Info */}

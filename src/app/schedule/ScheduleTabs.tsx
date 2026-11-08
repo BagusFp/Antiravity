@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Clock, Play, Inbox, Calendar, Flame, Sparkles, Tv, Layers } from "lucide-react";
 import { ScheduleItem } from "@/types/anime";
+import { getProxiedImageUrl } from "@/utils/formatters";
 
 interface ScheduleTabsProps {
   scheduleItems: ScheduleItem[];
@@ -41,7 +42,7 @@ export default function ScheduleTabs({ scheduleItems }: ScheduleTabsProps) {
         <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-muted/20 border border-white/5 transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-lg group-hover:shadow-accent/15 group-hover:border-accent/20">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={item.image || "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&q=80"}
+            src={getProxiedImageUrl(item.image)}
             alt={item.title}
             loading="lazy"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

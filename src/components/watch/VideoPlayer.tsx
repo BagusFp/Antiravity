@@ -708,7 +708,7 @@ export default function VideoPlayer({
           allowFullScreen
           title="Video Playback Embed"
         />
-      ) : (
+      ) : activeSource ? (
         /* eslint-disable-next-line jsx-a11y/media-has-caption */
         <video
           ref={videoRef}
@@ -729,6 +729,35 @@ export default function VideoPlayer({
             />
           )}
         </video>
+      ) : (
+        /* Empty/Failed state UI instead of a dead black screen! */
+        <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-6 text-center space-y-6 animate-fade-in z-30">
+          <div className="w-16 h-16 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-lg shadow-purple-500/10">
+            <VolumeX className="w-8 h-8" />
+          </div>
+          <div className="space-y-2 max-w-md">
+            <h3 className="text-xl font-bold text-white tracking-wide">
+              Server Streaming Offline / Belum Tersedia
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Sumber video untuk episode ini sedang tidak dapat dimuat atau sedang dalam perbaikan server mirror. Silakan coba muat ulang atau pilih episode lain pada daftar di samping.
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2.5 rounded-full bg-purple-600 hover:bg-purple-500 font-semibold text-white transition-all shadow-md shadow-purple-600/20 text-sm"
+            >
+              Muat Ulang (Retry)
+            </button>
+            <Link
+              href="/"
+              className="px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-all text-sm font-semibold"
+            >
+              Kembali ke Beranda
+            </Link>
+          </div>
+        </div>
       )}
 
       {/* Auto-Next Autoplay Countdown Overlay */}

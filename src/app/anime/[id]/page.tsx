@@ -5,6 +5,7 @@ import fallbackManager from "@/providers/fallback";
 import AnimeCard from "@/components/home/AnimeCard";
 import MyListButton from "@/components/common/MyListButton";
 import EpisodeGrid from "@/components/anime/EpisodeGrid";
+import { getProxiedImageUrl } from "@/utils/formatters";
 
 // Dynamic routing: disable cache so latest episodes show up instantly on every visit
 export const dynamic = "force-dynamic";
@@ -45,7 +46,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
       <div className="absolute top-0 left-0 w-full h-[45vh] sm:h-[55vh] overflow-hidden z-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={detail.image}
+          src={getProxiedImageUrl(detail.image)}
           alt={detail.title}
           className="w-full h-full object-cover object-center blur-2xl opacity-20 scale-110"
         />
@@ -62,9 +63,9 @@ export default async function AnimeDetailPage({ params }: PageProps) {
           <div className="w-48 sm:w-64 mx-auto sm:mx-0 aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 shadow-2xl shrink-0 bg-muted/20 relative group">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={detail.image}
+              src={getProxiedImageUrl(detail.image)}
               alt={detail.title}
-              style={{ viewTransitionName: `anime-card-${id}` }}
+              style={{ viewTransitionName: `anime-card-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}` }}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           </div>

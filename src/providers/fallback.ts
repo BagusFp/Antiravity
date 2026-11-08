@@ -259,9 +259,9 @@ class ProviderManager {
     });
 
     const trending = [
-      mockCard("otakudesu:naruto-sub-indo", "Naruto: Shippuden [Sub Indo]", "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&q=80", "9.1"),
-      mockCard("otakudesu:one-piece-sub-indo", "One Piece [Sub Indo]", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&q=80", "8.9"),
-      mockCard("otakudesu:boruto-sub-indo", "Boruto: Naruto Next Generations [Sub Indo]", "https://images.unsplash.com/photo-1560942485-b2a11cc13456?w=600&q=80", "7.3"),
+      mockCard("otakudesu:1piece-sub-indo", "One Piece Subtitle Indonesia", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&q=80", "8.9"),
+      mockCard("otakudesu:borot-sub-indo", "Boruto: Naruto Next Generations Subtitle Indonesia", "https://images.unsplash.com/photo-1560942485-b2a11cc13456?w=600&q=80", "7.3"),
+      mockCard("otakudesu:vrtex-force-sub-indo", "Vertex Force Subtitle Indonesia", "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&q=80", "8.2"),
     ];
 
     return {
@@ -276,19 +276,19 @@ class ProviderManager {
     const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
     return [
       {
-        id: "otakudesu:naruto-sub-indo",
-        title: "Naruto: Shippuden [Sub Indo]",
-        image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&q=80",
-        airingTime: "22:30",
-        episode: 500,
+        id: "otakudesu:1piece-sub-indo",
+        title: "One Piece Subtitle Indonesia",
+        image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&q=80",
+        airingTime: "17:30",
+        episode: 1180,
         day: days[new Date().getDay()] || "sunday",
       },
       {
-        id: "otakudesu:one-piece-sub-indo",
-        title: "One Piece [Sub Indo]",
-        image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&q=80",
-        airingTime: "17:30",
-        episode: 1090,
+        id: "otakudesu:vrtex-force-sub-indo",
+        title: "Vertex Force Subtitle Indonesia",
+        image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&q=80",
+        airingTime: "20:00",
+        episode: 6,
         day: days[new Date().getDay()] || "sunday",
       }
     ];
